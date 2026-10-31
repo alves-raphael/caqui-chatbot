@@ -178,3 +178,7 @@ Priorizar três demonstrações: cliente seleciona persona/exemplo e recebe resp
 - Todas as 12 regras e seis obrigações preservadas; cálculos condicionados à validação.
 - Horário 08h inclusiva/20h fechamento é convenção proposta, destacada para revisão.
 - Não há evidência de implementação/testes/deploy neste documento. Registrar resultados reais e limitações no README, usando [Como usamos IA](https://github.com/avenue-community/caqui-invest/blob/main/templates/COMO-USAMOS-IA.md).
+
+## Alteração de horário aprovada em 31/10/2026
+
+O usuário alterou apenas os feriados em relação a KB-025: atendimento comum 8h–20h em Brasília todos os dias, inclusive sábado/domingo, exceto feriados conhecidos. Usar o campo `feriado` de `calendario.json`, sem aplicar o critério financeiro `dia_util`. Cobertura 01/10/2026–31/12/2027, feriados nacionais do case; fora dela, registrar protocolo com próxima abertura não confirmada. Segurança 24h sempre. Esta decisão prevalece sobre referências anteriores a atendimento diário sem exceção.

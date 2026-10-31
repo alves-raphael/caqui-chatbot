@@ -4112,8 +4112,28 @@
         bindDynamic();
       }
       function businessOpen() {
-        let h = Number($('#demo-clock').value.slice(11, 13));
-        return h >= 8 && h < 20;
+        const value = $('#demo-clock').value,
+          day = D.calendar.dias.find((d) => d.data === value.slice(0, 10));
+        const h = Number(value.slice(11, 13));
+        return !!day && !day.feriado && h >= 8 && h < 20;
+      }
+      function standaloneSchedule() {
+        const value = $('#demo-clock').value,
+          date = value.slice(0, 10),
+          h = Number(value.slice(11, 13));
+        const day = D.calendar.dias.find((d) => d.data === date);
+        if (businessOpen())
+          return 'Estamos na janela de atendimento humano (8h–20h, inclusive fins de semana, exceto feriados conhecidos). Fila e atendimento são simulados; não há estimativa real de espera disponível.';
+        const next =
+          day && D.calendar.dias.find((d) => !d.feriado && (d.data > date || (d.data === date && h < 8)));
+        if (!next)
+          return 'Protocolo registrado. Não tenho calendário validado para informar a próxima abertura; retorno precisa ser confirmado.';
+        return (
+          (day.feriado ? 'Hoje é feriado: ' + day.feriado + '. ' : 'Agora estamos fora do horário humano. ') +
+          'Retorno previsto a partir das 8h de ' +
+          nice(next.data) +
+          ' (Brasília); demandas não urgentes têm prazo de até 7 dias corridos.'
+        );
       }
       function handoff(
         kind,
@@ -4136,7 +4156,7 @@
           existing.waitStage = 'unavailable';
           existing.handling = 'waiting';
           state.phase = 'queued';
-          notifyFlow('queue');
+          notifyFlow(kind === 'fraud' ? 'security' : 'queue');
           existing.kind = kind;
           existing.reason = reason;
           existing.priority =
@@ -4190,15 +4210,15 @@
         state.tickets.unshift(t);
         state.activeTicket = id;
         state.phase = 'queued';
-        notifyFlow('queue');
+        notifyFlow(kind === 'fraud' ? 'security' : 'queue');
         state.selected = id;
         let persisted = save();
-        let schedule = urgent
-          ? 'Segurança 24h, sem fila — encaminhamento e bloqueio apenas simulados.'
-          : businessOpen()
-            ? 'Estamos na janela de atendimento humano (8h–20h). Fila e atendimento são simulados; não há estimativa real de espera disponível.'
-            : 'Agora estamos fora do horário humano. Retorno previsto a partir das 8h; demandas não urgentes têm prazo de até 7 dias corridos.';
-        let text = `${persisted ? 'Protocolo salvo neste navegador' : 'Não foi possível salvar de forma persistente; protocolo disponível apenas nesta sessão'}: ${id}.\n\n${reason}\n\n${schedule}${!urgent && businessOpen() ? ' Demandas não urgentes: até 7 dias corridos.' : ''}\n\nO histórico sanitizado acompanha o protocolo. Nenhuma pessoa real foi acionada.`;
+        let schedule = window.CAQUI_LOCAL_CONFIG
+          ? 'O horário de atendimento será conferido pelo servidor em Brasília. Este protocolo é demonstrativo; não confirma uma pessoa online.'
+          : urgent
+            ? 'Segurança 24h, sem fila — encaminhamento e bloqueio apenas simulados.'
+            : standaloneSchedule();
+        let text = `${persisted ? 'Protocolo salvo neste navegador' : 'Não foi possível salvar de forma persistente; protocolo disponível apenas nesta sessão'}: ${id}.\n\n${reason}\n\n${schedule}${!window.CAQUI_LOCAL_CONFIG && !urgent && businessOpen() ? ' Demandas não urgentes: até 7 dias corridos.' : ''}\n\nO histórico sanitizado acompanha o protocolo. Nenhuma pessoa real foi acionada.`;
         addMessage('assistant', text, refs, { ticket: id, action: urgent ? 'fraud' : null });
         // A final handoff locks the conversation until the agent assumes it.
         renderAgent();
@@ -4465,9 +4485,17 @@
       }
       async function assumeTicket(t) {
         if (sessionRole !== 'agent' || t.handling === 'closed' || humanOwns(t)) return;
+        if (!window.CaquiSyncFlow && t.kind !== 'fraud' && !businessOpen()) {
+          toast(standaloneSchedule());
+          return;
+        }
         if (
           window.CaquiSyncFlow &&
-          !(await window.CaquiSyncFlow('assume', { role: 'agent', clientId: t.clientId }))
+          !(await window.CaquiSyncFlow('assume', {
+            role: 'agent',
+            clientId: t.clientId,
+            security: t.kind === 'fraud',
+          }))
         ) {
           toast('Não foi possível confirmar a entrada do atendente. Tente novamente.');
           return;
@@ -5540,6 +5568,44 @@
 
       // Optional local host bridge. The standalone file remains offline.
       window.CaquiDemo = {
+        updateAvailability(clientId, availability) {
+          const profile = profiles[clientId];
+          const ticket = profile?.tickets.find((t) => t.id === profile.activeTicket);
+          if (!ticket || ticket.handling === 'closed' || !availability) return false;
+          const changed = ticket.availability?.message !== availability.message;
+          ticket.availability = availability;
+          if (!humanOwns(ticket))
+            ticket.status = availability.available
+              ? ticket.kind === 'fraud'
+                ? 'Segurança · simulado'
+                : 'Aguardando · simulado'
+              : 'Protocolo fora do horário · simulado';
+          if (changed) {
+            const m = {
+              role: 'system',
+              text: R.sanitize(availability.message),
+              refs: ['KB-025'],
+              time: stamp(),
+              ticket: ticket.id,
+            };
+            ticket.messages.push(m);
+            profile.messages.push({ ...m });
+            ticket.revision++;
+          }
+          try {
+            localStorage.setItem(
+              'caqui-demo-v2:' + clientId,
+              JSON.stringify(scrub({ ...profile, clientId })),
+            );
+          } catch {
+            storageOK = false;
+          }
+          if (clientId === currentClientId) {
+            renderClient();
+            renderAgent();
+          }
+          return true;
+        },
         context: () => {
           const ticket = state.tickets.find((t) => t.id === state.selected);
           return {

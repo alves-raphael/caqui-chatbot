@@ -36,3 +36,9 @@ O login/persona é demonstrativo, não identidade bancária. Histórico e mensag
 - Capturas desktop/mobile e fila inspecionadas localmente. Testes existentes afetados e viewports 1165×600, 390×740, 390×440 e 580×375 executados. `yarn verify` passou com 11 testes unitários, tipos, lint e OpenAPI atualizado; build passou, mantendo o aviso de bundle grande.
 
 Os 34 E2E e chamadas reais Luna/Terra documentados anteriormente pertencem à entrega anterior. Esta rodada não repetiu chamadas reais nem a suíte completa do case. Docker/Compose já foram construídos/verificados na entrega anterior; não houve novo deploy, publicação de imagem, configuração de segredo remoto ou merge.
+
+## Horário do atendimento
+
+O backend confere horário real em `America/Sao_Paulo` ao encaminhar e ao assumir. Às 19h59 o atendimento comum está dentro da janela; às 20h fica protocolado para retorno a partir das 8h seguintes. Segurança mantém a exceção 24h. O relógio financeiro do navegador não altera essa decisão. O usuário aprovou uma exceção explícita a KB-025: excluir feriados conhecidos, mantendo sábados e domingos. Usa apenas o campo `feriado` do calendário do case; `dia_util` não é escala humana. Feriados estaduais/municipais não constam da base. Fora da cobertura de 01/10/2026 a 31/12/2027, o protocolo é registrado sem inventar a próxima abertura. Segurança atende 24h inclusive feriados.
+
+A primeira CI deste PR passou `verify` e 32/34 E2E. As duas falhas eram uma fixture da ponte sem a nova rota de transição e uma asserção de texto anterior à revisão de linguagem; foram atualizadas para o contrato de estado e a identificação global de dados não ao vivo. O resultado final deve ser consultado no head mais recente.

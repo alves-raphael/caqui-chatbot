@@ -69,10 +69,17 @@
         headers: { 'Content-Type': 'application/json', 'X-Demo-Session': session.token },
         body: JSON.stringify({ event: eventName, ...(target ? { clientSession: target } : {}) }),
       });
-      if (!res.ok) throw new Error('Não foi possível sincronizar o atendimento');
+      if (!res.ok) {
+        const failure = await res.json().catch(() => null);
+        if (failure?.error?.code === 'SUPPORT_CLOSED' && failure.error.details?.availability) {
+          checkGeneration();
+          demo.updateAvailability(context.clientId, failure.error.details.availability);
+        }
+        throw new Error('Não foi possível sincronizar o atendimento');
+      }
       return res.json();
     };
-    if (event === 'assume') await post('queue', client);
+    if (event === 'assume') await post(context.security ? 'security' : 'queue', client);
     return post(event, actor, event === 'assume' ? client.token : undefined);
   }
   window.CaquiSyncFlow = async (event, context) => {
@@ -83,7 +90,9 @@
     const update = previous.catch(() => {}).then(() => flowRequest(event, { ...context, generation }));
     flows.set(key, update);
     try {
-      await update;
+      const result = await update;
+      if (generation === (generations.get(context.clientId) || 0))
+        demo.updateAvailability(context.clientId, result.availability);
       return true;
     } catch {
       if (generation === (generations.get(context.clientId) || 0))

@@ -814,6 +814,7 @@
                   "event": {
                     "enum": [
                       "queue",
+                      "security",
                       "assume",
                       "close"
                     ],
@@ -836,6 +837,47 @@
                 "schema": {
                   "additionalProperties": false,
                   "properties": {
+                    "availability": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "available": {
+                          "type": "boolean"
+                        },
+                        "calendarKnown": {
+                          "type": "boolean"
+                        },
+                        "checkedAt": {
+                          "type": "string"
+                        },
+                        "holiday": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "nextWindow": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "timezone": {
+                          "enum": [
+                            "America/Sao_Paulo"
+                          ],
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "calendarKnown",
+                        "holiday",
+                        "available",
+                        "nextWindow",
+                        "checkedAt",
+                        "timezone",
+                        "message"
+                      ],
+                      "type": "object"
+                    },
                     "state": {
                       "enum": [
                         "bot",
@@ -848,7 +890,8 @@
                     }
                   },
                   "required": [
-                    "state"
+                    "state",
+                    "availability"
                   ],
                   "type": "object"
                 }

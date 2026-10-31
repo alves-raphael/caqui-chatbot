@@ -83,3 +83,5 @@ Itens de “O que vale para qualquer caminho” que não se aplicam: **nenhum**.
 **Mudança de fluxo em 31/10/2026:** o pedido final do usuário substituiu a pré-triagem durante a espera por bloqueio do chat na fila. Estados: `bot → helpOptional → queued → human → closed`, admitindo encaminhamento direto de `bot` para `queued`. Prioridade: segurança, vulnerabilidade/60+, normal; dentro da mesma prioridade, abertura mais antiga primeiro. Abertura usa horário real, separado do relógio financeiro; legado sem data real aparece como não registrado.
 
 **Atendente:** compositor manual independente da IA; assumir, escrever e enviar sem checkbox do copiloto. Rascunho opcional pode ser copiado e editado. Texto copiado fica desatualizado quando chega mensagem nova; envio manual não atribui fontes inexistentes.
+
+**Horário:** servidor em Brasília verifica 8h–20h em todos os dias exceto feriados conhecidos, por alteração explícita aprovada em 31/10/2026 sobre KB-025. Sábados e domingos permanecem abertos. Usa somente o campo `feriado` de `calendario.json`, não `dia_util`; fora da cobertura, não inventa próxima abertura. Segurança permanece 24h.

@@ -6,6 +6,7 @@ import { errorResponseSchema } from '@caqui-chatbot/shared';
 import { env } from '../../env.js';
 import { AppError } from '../../lib/errors.js';
 import { OpenRouterProvider } from './openrouter.js';
+import { supportAvailability } from './availability.js';
 import { DemoChatService } from './service.js';
 import {
   chatRequestSchema,
@@ -42,6 +43,7 @@ type Session = DemoIdentity & {
   state: 'bot' | 'helpOptional' | 'queued' | 'human' | 'closed';
   revision: number;
   steps: number;
+  security: boolean;
 };
 const sessions = new Map<string, Session>();
 function localOnly(request: FastifyRequest): Promise<void> {
@@ -105,6 +107,7 @@ export const demoChatRoutes: FastifyPluginAsyncZod = async (app) => {
         state: 'bot',
         revision: 0,
         steps: 0,
+        security: false,
       });
       return { ...request.body, token, expiresAt };
     },
@@ -134,15 +137,19 @@ export const demoChatRoutes: FastifyPluginAsyncZod = async (app) => {
         target.clientId !== actor.clientId
       )
         throw new AppError(403, 'CASE_DENIED', 'Atendimento não disponível nesta sessão.');
+      const availability = supportAvailability(target.security || request.body.event === 'security');
       if (request.body.event === 'assume') {
         if (actor.role !== 'agent' || target.state !== 'queued')
           throw new AppError(403, 'ASSUME_DENIED', 'Somente o atendente pode assumir um protocolo na fila.');
+        if (!availability.available)
+          throw new AppError(409, 'SUPPORT_CLOSED', availability.message, { availability });
         target.state = 'human';
-      } else if (request.body.event === 'queue') {
+      } else if (request.body.event === 'queue' || request.body.event === 'security') {
+        if (request.body.event === 'security') target.security = true;
         if (target.state !== 'closed') target.state = 'queued';
       } else target.state = 'closed';
       target.revision++;
-      return { state: target.state };
+      return { state: target.state, availability };
     },
   );
   for (const role of ['client', 'agent'] as const) {
@@ -202,6 +209,7 @@ export const demoChatRoutes: FastifyPluginAsyncZod = async (app) => {
           )
             throw new AppError(409, 'AI_PAUSED', 'Resposta descartada porque o atendimento mudou de estado.');
           if (role === 'client' && response.handoff) {
+            if (response.handoff === 'security') session.security = true;
             session.state = 'queued';
             session.revision++;
           }

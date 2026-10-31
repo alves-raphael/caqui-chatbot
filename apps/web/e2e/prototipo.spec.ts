@@ -329,7 +329,10 @@ test('Marta vê conta e todas as posições separadas do resgate e entende a apl
   await expect(overview).toContainText(/40\.000,00/);
   await expect(overview).toContainText('Não somei esses pedidos ao saldo nem aos investimentos');
   await expect(overview).toContainText('18/11/2026');
-  await expect(overview).toContainText('não é uma consulta em tempo real');
+  await expect(page.locator('.account-card')).toContainText('SUA CONTA DE DEMONSTRAÇÃO');
+  await expect
+    .poll(() => page.locator('.account-source').evaluate((el) => getComputedStyle(el, '::after').content))
+    .toContain('não ao vivo');
   await expect(overview.locator('details')).not.toHaveAttribute('open', '');
   await expect(overview.getByRole('link').first()).toBeHidden();
   await overview.locator('summary').click();

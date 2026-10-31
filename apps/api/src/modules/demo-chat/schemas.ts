@@ -67,6 +67,18 @@ export type QuickReply = z.infer<typeof quickReplySchema>;
 
 export const flowStateSchema = z.enum(['bot', 'helpOptional', 'queued', 'human', 'closed']);
 export const flowRequestSchema = z
-  .object({ event: z.enum(['queue', 'assume', 'close']), clientSession: z.string().max(64).optional() })
+  .object({
+    event: z.enum(['queue', 'security', 'assume', 'close']),
+    clientSession: z.string().max(64).optional(),
+  })
   .strict();
-export const flowResponseSchema = z.object({ state: flowStateSchema });
+export const availabilitySchema = z.object({
+  calendarKnown: z.boolean(),
+  holiday: z.string().nullable(),
+  available: z.boolean(),
+  nextWindow: z.string().nullable(),
+  checkedAt: z.string(),
+  timezone: z.literal('America/Sao_Paulo'),
+  message: z.string(),
+});
+export const flowResponseSchema = z.object({ state: flowStateSchema, availability: availabilitySchema });
