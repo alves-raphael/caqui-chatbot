@@ -127,6 +127,17 @@
                       ],
                       "type": "string"
                     },
+                    "handoffReason": {
+                      "enum": [
+                        "unverified_source",
+                        "missing_operation",
+                        "no_coverage",
+                        "security_risk",
+                        "human_requested",
+                        "no_progress_limit"
+                      ],
+                      "type": "string"
+                    },
                     "mode": {
                       "enum": [
                         "model",
@@ -173,6 +184,18 @@
                       },
                       "maxItems": 6,
                       "type": "array"
+                    },
+                    "resolution": {
+                      "enum": [
+                        "answered",
+                        "clarification",
+                        "handoff"
+                      ],
+                      "type": "string"
+                    },
+                    "resolutionTopic": {
+                      "pattern": "^KB-\\d{3}$",
+                      "type": "string"
                     },
                     "sources": {
                       "items": {
@@ -522,6 +545,17 @@
                       ],
                       "type": "string"
                     },
+                    "handoffReason": {
+                      "enum": [
+                        "unverified_source",
+                        "missing_operation",
+                        "no_coverage",
+                        "security_risk",
+                        "human_requested",
+                        "no_progress_limit"
+                      ],
+                      "type": "string"
+                    },
                     "mode": {
                       "enum": [
                         "model",
@@ -568,6 +602,18 @@
                       },
                       "maxItems": 6,
                       "type": "array"
+                    },
+                    "resolution": {
+                      "enum": [
+                        "answered",
+                        "clarification",
+                        "handoff"
+                      ],
+                      "type": "string"
+                    },
+                    "resolutionTopic": {
+                      "pattern": "^KB-\\d{3}$",
+                      "type": "string"
                     },
                     "sources": {
                       "items": {

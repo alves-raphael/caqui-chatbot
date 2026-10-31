@@ -3783,7 +3783,8 @@
           if (/fgc|garantia/.test(s)) return 'fgc';
           if (/reclam/.test(s)) return 'complaint';
           if (/encerr|cancelar.*conta/.test(s)) return 'close';
-          if (/atendente|pessoa|humano/.test(s)) return 'human';
+          if (/\batendente\b|\bhumano\b|(?:falar|conversar) com (?:uma? )?pessoa/.test(s)) return 'human';
+          if (/^(?:oi|ola|bom dia|boa tarde|boa noite|obrigad[oa]|valeu)[!.,\s]*$/.test(s)) return 'greeting';
           if (
             /recomend|melhor.*invest|onde.*invest|onde.*coloco|vale.*pena.*(?:pra mim|para mim)|quero.*(?:investir|aplicar)|como.*investir|comecar.*investir|voce faria|devo.*(aplicar|comprar|invest)|qual.*(investimento|produto).*melhor/.test(
               s,
@@ -3849,6 +3850,10 @@
         );
       const nice = (d) => (d ? d.split('-').reverse().join('/') : 'não disponível');
       const FAQ = {
+        greeting: [
+          'Olá! Sou PatricIA. Posso explicar produtos, consultar sua conta ou acompanhar uma operação. Como posso ajudar?',
+          [],
+        ],
         liquidity: [
           'Para CDB com liquidez diária, você pode pedir o resgate até as 16h (inclusive), em dia útil, com previsão de receber no mesmo dia. Depois desse horário, a previsão passa para o próximo dia útil.',
           ['KB-004', 'KB-006'],
@@ -3926,6 +3931,7 @@
         activeTicket: null,
         steps: 0,
         unknown: 0,
+        resolutionChecks: {},
         view: 'client',
         sequence: 1,
         adviceOffers: 0,
@@ -4068,8 +4074,30 @@
               '</div>'
           : '';
       }
+      function offerResolution(message, topic) {
+        if (!topic || !message.refs?.length || activeTicket() || sessionRole !== 'client') return;
+        state.resolutionChecks ||= {};
+        if (state.resolutionChecks[topic]) return;
+        state.resolutionChecks[topic] = { offered: true, confirmed: false };
+        message.resolutionTopic = topic;
+      }
+      function resolutionHTML(m) {
+        if (
+          !m.resolutionTopic ||
+          sessionRole !== 'client' ||
+          activeTicket() ||
+          m !== state.messages.findLast((x) => x.role === 'assistant')
+        )
+          return '';
+        const result = state.resolutionChecks?.[m.resolutionTopic];
+        if (result?.choice)
+          return result.confirmed
+            ? '<p role="status">Você confirmou que esta dúvida foi esclarecida.</p>'
+            : '';
+        return `<div class="resolution-check"><p>Isso resolveu sua dúvida?</p><div class="wait-choices"><button data-resolution="yes" data-resolution-topic="${esc(m.resolutionTopic)}">Sim, resolveu</button><button data-resolution="no" data-resolution-topic="${esc(m.resolutionTopic)}">Ainda preciso de ajuda</button></div></div>`;
+      }
       function messageHTML(m) {
-        return `<article class="message ${m.role}"><div class="message-name">${m.role === 'user' ? 'Cliente · ' + esc(firstName()) : m.role === 'human' ? 'Atendente · envio simulado' : m.role === 'system' ? 'Atualização da demonstração' : m.liveModel ? 'PatricIA · IA conectada · ' + esc(m.liveModel) : 'PatricIA · IA simulada'} <span>· ${esc(m.time?.slice(11, 16) || '10:00')}</span></div><div class="bubble">${esc(m.text)}${m.details ? `<details class="answer-details"><summary>Ver detalhes do pedido</summary><p>${esc(m.details)}</p></details>` : ''}${m.refs?.length ? `<details class="sources message-sources"><summary>Ver fontes desta resposta</summary>${sourceHTML(m.refs)}</details>` : ''}${m.action === 'fraud' ? '<button class="inline-action" data-block>Simular bloqueio de acesso</button>' : ''}${m.action === 'advice' && sessionRole === 'client' && !activeTicket() ? '<div class="advice-actions"><button data-advice-education>Entender as diferenças</button><button data-advice-human>Falar com especialista</button></div>' : ''}${m.action === 'money-overview' && !m.quickReplies?.length && sessionRole === 'client' && !activeTicket() ? '<div class="wait-choices"><button data-money="investments">Ver meus investimentos</button><button data-money="resgate">Entender meu resgate</button></div>' : ''}${waitActionHTML(m)}${quickReplyHTML(m)}${m.ticket ? `<span class="record-label">Contexto salvo no protocolo ${esc(m.ticket)}.</span>` : ''}</div></article>`;
+        return `<article class="message ${m.role}"><div class="message-name">${m.role === 'user' ? 'Cliente · ' + esc(firstName()) : m.role === 'human' ? 'Atendente · envio simulado' : m.role === 'system' ? 'Atualização da demonstração' : m.liveModel ? 'PatricIA · IA conectada · ' + esc(m.liveModel) : 'PatricIA · IA simulada'} <span>· ${esc(m.time?.slice(11, 16) || '10:00')}</span></div><div class="bubble">${esc(m.text)}${m.details ? `<details class="answer-details"><summary>Ver detalhes do pedido</summary><p>${esc(m.details)}</p></details>` : ''}${m.refs?.length ? `<details class="sources message-sources"><summary>Ver fontes desta resposta</summary>${sourceHTML(m.refs)}</details>` : ''}${m.action === 'fraud' ? '<button class="inline-action" data-block>Simular bloqueio de acesso</button>' : ''}${m.action === 'advice' && sessionRole === 'client' && !activeTicket() ? '<div class="advice-actions"><button data-advice-education>Entender as diferenças</button><button data-advice-human>Falar com especialista</button></div>' : ''}${m.action === 'money-overview' && !m.quickReplies?.length && sessionRole === 'client' && !activeTicket() ? '<div class="wait-choices"><button data-money="investments">Ver meus investimentos</button><button data-money="resgate">Entender meu resgate</button></div>' : ''}${waitActionHTML(m)}${quickReplyHTML(m)}${resolutionHTML(m)}${m.ticket ? `<span class="record-label">Contexto salvo no protocolo ${esc(m.ticket)}.</span>` : ''}</div></article>`;
       }
       function addMessage(role, text, refs = [], extra = {}) {
         let m = { role, text: R.sanitize(text), refs, time: stamp(), ...scrub(extra) };
@@ -4439,7 +4467,8 @@
             'Posso explicar sem escolher por você: CDB é um título bancário; LCI/LCA podem ter carência ou vencimento; fundos têm taxas, riscos e prazos próprios. Qual desses conceitos quer entender?',
             ['KB-003', 'KB-011', 'KB-014', 'KB-029'],
           );
-        else if (FAQ[kind]) addMessage('assistant', ...FAQ[kind]);
+        else if (FAQ[kind])
+          addMessage('assistant', FAQ[kind][0], FAQ[kind][1], { faqTopic: FAQ[kind][1][0] });
         else if (kind === 'injection') {
           addMessage(
             'assistant',
@@ -4642,6 +4671,7 @@
             'assistant',
             `Encontrei mais de um resgate. Qual você quer consultar: ${matching.map((o) => productLabel(o.produto)).join(' ou ')}?`,
             ['KB-008'],
+            { needsClarification: true },
           );
           return;
         }
@@ -4817,13 +4847,7 @@
           renderAgent();
           return;
         }
-        if (state.steps > 5) {
-          handoff(
-            'limit',
-            'Chegamos ao limite de cinco passos. Uma pessoa continuará com o histórico, sem repetir orientações.',
-          );
-          return;
-        }
+
         if (kind === 'advice') {
           investmentConversation(input);
           return;
@@ -4898,14 +4922,14 @@
           );
           return;
         }
-        if (state.steps >= 5) {
-          handoff(
-            'limit',
-            'Chegamos ao limite de cinco passos. Para não repetir respostas, sua conversa segue com o atendimento.',
-          );
-          return;
-        }
+
         if (kind === 'unsupported') {
+          if (/(?:oferece|tem|disponivel)/.test(R.normalized(input))) {
+            addMessage('assistant', FAQ.unsupported[0], FAQ.unsupported[1], {
+              faqTopic: FAQ.unsupported[1][0],
+            });
+            return;
+          }
           handoff(
             'advice',
             'Não tenho uma resposta confirmada para esse produto. Seu pedido segue para um especialista com o contexto já informado.',
@@ -4916,7 +4940,7 @@
         }
         if (FAQ[kind]) {
           state.unknown = 0;
-          addMessage('assistant', ...FAQ[kind]);
+          addMessage('assistant', FAQ[kind][0], FAQ[kind][1], { faqTopic: FAQ[kind][1][0] });
           return;
         }
         handoff(
@@ -5266,6 +5290,35 @@
         };
       }
       function bindDynamic() {
+        $$('[data-resolution]').forEach((button) => {
+          button.onclick = () => {
+            const topic = button.dataset.resolutionTopic;
+            const check = state.resolutionChecks?.[topic];
+            if (!check || check.choice || activeTicket() || sessionRole !== 'client') return;
+            check.choice = button.dataset.resolution;
+            check.confirmed = check.choice === 'yes';
+            check.confirmedAt = check.confirmed ? new Date().toISOString() : null;
+            if (check.confirmed) {
+              state.steps = 0;
+              addMessage('user', 'Sim, essa dúvida foi esclarecida.');
+              addMessage(
+                'system',
+                'Dúvida marcada como esclarecida por você. Nenhuma operação financeira foi realizada.',
+              );
+            } else {
+              addMessage('user', 'Ainda preciso de ajuda com essa explicação.');
+              addMessage(
+                'assistant',
+                'O que faltou esclarecer nessa explicação? Conte o ponto que ficou em dúvida; o histórico está aqui para continuarmos.',
+                [],
+                { needsClarification: true },
+              );
+              $('#client-input').focus();
+            }
+            save();
+            renderClient();
+          };
+        });
         $$('[data-quick-choice]').forEach((button) => {
           button.onclick = () => {
             const message = state.messages[Number(button.dataset.quickMessage)];
@@ -5645,9 +5698,16 @@
             (ticket && ['queued', 'human', 'closed'].includes(phase()))
           )
             return false;
+          if (reply.resolution === 'answered') state.steps = 0;
           message.text = R.sanitize(reply.text);
           message.refs = reply.sources;
           message.liveModel = reply.mode === 'model' ? reply.model : null;
+          if (
+            reply.resolution === 'answered' &&
+            !reply.handoff &&
+            /^KB-\d{3}$/.test(reply.resolutionTopic || '')
+          )
+            offerResolution(message, reply.resolutionTopic);
           message.quickReplies = (reply.quickReplies || [])
             .filter(
               (q) =>
@@ -5743,6 +5803,24 @@
         selectedQuickReply = quickReply || null;
         try {
           sendOffline(input, forced);
+          const answer = state.messages.slice(before).findLast((m) => m.role === 'assistant' && !m.ticket);
+          if (
+            !activeTicket() &&
+            answer &&
+            !answer.needsClarification &&
+            !['advice', 'fraud'].includes(answer.action) &&
+            (answer.refs?.length || R.route(input) === 'greeting')
+          ) {
+            state.steps = 0;
+            if (!window.CAQUI_LOCAL_CONFIG?.enabled && answer.faqTopic)
+              offerResolution(answer, answer.faqTopic);
+            save();
+            renderClient();
+          } else if (!activeTicket() && state.steps >= 5)
+            handoff(
+              'limit',
+              'Ainda não conseguimos concluir esta dúvida. Uma pessoa continuará com o histórico, sem repetir orientações.',
+            );
           requestLiveAnswer(input, before);
         } finally {
           selectedQuickReply = null;

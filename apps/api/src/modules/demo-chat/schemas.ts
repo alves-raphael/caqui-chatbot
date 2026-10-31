@@ -43,6 +43,21 @@ export const chatRequestSchema = z
   })
   .strict();
 export const chatResponseSchema = z.object({
+  resolution: z.enum(['answered', 'clarification', 'handoff']).optional(),
+  resolutionTopic: z
+    .string()
+    .regex(/^KB-\d{3}$/)
+    .optional(),
+  handoffReason: z
+    .enum([
+      'unverified_source',
+      'missing_operation',
+      'no_coverage',
+      'security_risk',
+      'human_requested',
+      'no_progress_limit',
+    ])
+    .optional(),
   text: z.string(),
   sources: z.array(z.string()),
   mode: z.enum(['model', 'fallback', 'rule']),

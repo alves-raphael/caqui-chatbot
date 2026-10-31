@@ -185,20 +185,7 @@ export const demoChatRoutes: FastifyPluginAsyncZod = async (app) => {
         session.busy = true;
         try {
           const revision = session.revision;
-          if (role === 'client' && ++session.steps > 5) {
-            session.state = 'queued';
-            session.revision++;
-            return {
-              text: 'Vou encaminhar o histórico para uma pessoa continuar. Aguarde o atendente assumir.',
-              sources: ['KB-025', 'KB-026'],
-              mode: 'rule' as const,
-              model: null,
-              costUsd: 0,
-              handoff: 'support' as const,
-              notice: 'Limite de etapas da IA atingido; atendimento encaminhado.',
-            };
-          }
-          const response = await demoChatService.answer(
+          let response = await demoChatService.answer(
             session,
             request.body,
             typeof token === 'string' ? token : undefined,
@@ -208,6 +195,22 @@ export const demoChatRoutes: FastifyPluginAsyncZod = async (app) => {
             (revision !== session.revision || !['bot', 'helpOptional'].includes(session.state))
           )
             throw new AppError(409, 'AI_PAUSED', 'Resposta descartada porque o atendimento mudou de estado.');
+          if (role === 'client') {
+            session.steps = response.resolution === 'answered' ? 0 : session.steps + 1;
+            if (session.steps >= 5 && !response.handoff)
+              response = {
+                ...response,
+                text: 'Ainda não conseguimos concluir esta dúvida. Vou encaminhar o histórico para uma pessoa continuar.',
+                sources: ['KB-025', 'KB-026'],
+                mode: 'rule',
+                model: null,
+                handoff: 'support',
+                handoffReason: 'no_progress_limit',
+                resolution: 'handoff',
+                quickReplies: [],
+                notice: 'Limite de etapas sem resolução; atendimento encaminhado.',
+              };
+          }
           if (role === 'client' && response.handoff) {
             if (response.handoff === 'security') session.security = true;
             session.state = 'queued';
