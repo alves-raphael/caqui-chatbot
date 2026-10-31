@@ -8,6 +8,10 @@ Monorepo Node.js (Yarn workspaces) pensado para desenvolvimento com agentes de I
 - Zod é a fonte única de validação, tipos e OpenAPI. `apps/api/openapi.json` é gerado e versionado (`yarn api:openapi`); `yarn verify` falha se estiver desatualizado.
 - Specs em `docs/specs/` e skills de projeto em `.claude/skills/` (`implement-spec`, `new-endpoint`).
 
+## Protótipo de atendimento
+
+O [protótipo editável em HTML](docs/prototipo/README.md) reúne as visões Cliente e Atendente e pode ser aberto diretamente no navegador, sem iniciar a aplicação. Os dados e as ações são simulados.
+
 ## Requisitos
 
 Node 24 (`.nvmrc`), Docker com Compose, corepack.

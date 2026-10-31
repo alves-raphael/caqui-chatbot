@@ -1,0 +1,3759 @@
+<!doctype html>
+<!-- Caqui Atende: HTML editável e autocontido. Login, permissões e atendimento simulados. Dados sintéticos do repositório. Sem credenciais/backend. Fontes web opcionais removidas; links de referência requerem internet. -->
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="description"
+      content="Protótipo Caqui Atende: autoatendimento com fontes e continuidade para o atendimento humano. Dados sintéticos; nenhuma operação real."
+    />
+    <title>Caqui Atende — protótipo</title>
+    <style>
+      :root {
+        --orange: #d94e1b;
+        --orange-bright: #ed6a36;
+        --orange-soft: #fff1e8;
+        --ink: #263b32;
+        --muted: #68766f;
+        --line: #e6e9e3;
+        --paper: #f7f8f4;
+        --green: #2b6550;
+        --dark: #173e31;
+        --radius: 18px;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font:
+          14px 'DM Sans',
+          Arial,
+          sans-serif;
+        line-height: 1.5;
+      }
+      button,
+      input,
+      textarea {
+        font: inherit;
+      }
+      button,
+      a,
+      input,
+      textarea {
+        outline-offset: 4px;
+      }
+      button:focus-visible,
+      a:focus-visible,
+      input:focus-visible,
+      textarea:focus-visible {
+        outline: 3px solid #e77831;
+      }
+      button {
+        cursor: pointer;
+      }
+      button:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      button {
+        color: inherit;
+      }
+      a {
+        color: var(--orange);
+      }
+      [hidden] {
+        display: none !important;
+      }
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+      .skip {
+        position: fixed;
+        top: -50px;
+        z-index: 20;
+        background: white;
+        padding: 10px;
+      }
+      .skip:focus {
+        top: 0;
+      }
+      .sidebar {
+        width: 228px;
+        background: #fff;
+        position: fixed;
+        inset: 0 auto 0 0;
+        padding: 36px 22px 22px;
+        border-right: 1px solid var(--line);
+        display: flex;
+        flex-direction: column;
+      }
+      .brand {
+        font-family: Manrope, sans-serif;
+        font-size: 42px;
+        font-weight: 800;
+        letter-spacing: -2px;
+        text-decoration: none;
+        color: var(--ink);
+        display: flex;
+        align-items: center;
+        line-height: 1;
+      }
+      .brand-dot {
+        color: var(--orange);
+      }
+      .fruit {
+        width: 27px;
+        height: 28px;
+        background: var(--orange-bright);
+        border-radius: 42% 48% 45% 48%;
+        display: inline-block;
+        margin-right: 8px;
+        position: relative;
+      }
+      .fruit:before {
+        content: '';
+        width: 13px;
+        height: 8px;
+        position: absolute;
+        background: var(--green);
+        border-radius: 2px 9px;
+        top: -5px;
+        left: 12px;
+        transform: rotate(-25deg);
+      }
+      .brand-sub {
+        font-size: 10px;
+        letter-spacing: 2.7px;
+        margin: 12px 0 53px 4px;
+        font-weight: 700;
+        color: var(--muted);
+      }
+      .side-label,
+      .eyebrow {
+        font-size: 10px;
+        letter-spacing: 1.7px;
+        font-weight: 700;
+        color: var(--muted);
+      }
+      .side-label {
+        margin: 0 12px 14px;
+      }
+      .nav-item {
+        border: 0;
+        background: none;
+        width: 100%;
+        display: flex;
+        gap: 13px;
+        align-items: center;
+        text-align: left;
+        padding: 14px 15px;
+        border-radius: 11px;
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+      .nav-item > span:first-child {
+        font-size: 20px;
+        line-height: 1;
+      }
+      .nav-item.active {
+        background: var(--orange-soft);
+        color: var(--orange);
+      }
+      .nav-count {
+        margin-left: auto;
+        font-size: 11px;
+        opacity: 0.7;
+      }
+      .side-note {
+        margin-top: auto;
+        background: #f7f8f3;
+        border-radius: 14px;
+        padding: 20px 17px;
+      }
+      .small-leaf {
+        font-size: 30px;
+        color: var(--green);
+      }
+      .side-note h3 {
+        font-size: 14px;
+        margin: 10px 0 6px;
+      }
+      .side-note p {
+        font-size: 12px;
+        color: var(--muted);
+        margin: 0;
+      }
+      .text-button {
+        background: none;
+        border: 0;
+        padding: 22px 0;
+        font-size: 11px;
+        text-align: left;
+        color: var(--muted);
+      }
+      .sidebar-footer {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        border-top: 1px solid var(--line);
+        padding-top: 20px;
+      }
+      .avatar {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: #ecefe5;
+        display: grid;
+        place-items: center;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .sidebar-footer strong {
+        display: block;
+        font-size: 11px;
+      }
+      .sidebar-footer small {
+        display: block;
+        font-size: 10px;
+        color: var(--muted);
+      }
+      .shell {
+        margin-left: 228px;
+      }
+      .topbar {
+        height: 78px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 40px;
+        background: #fff;
+        border-bottom: 1px solid var(--line);
+      }
+      .breadcrumb {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .breadcrumb span {
+        padding: 0 12px;
+        color: #b1bab3;
+      }
+      .breadcrumb b {
+        font-weight: 500;
+        color: var(--ink);
+      }
+      .top-right {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+      }
+      .demo-pill {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 9px;
+        letter-spacing: 1.2px;
+        font-weight: 700;
+        border: 1px solid #e8d7c6;
+        background: #fffaf3;
+        border-radius: 5px;
+        padding: 6px 10px;
+      }
+      .demo-pill i {
+        width: 5px;
+        height: 5px;
+        background: var(--orange);
+        border-radius: 50%;
+      }
+      .icon-button {
+        border: 1px solid var(--line);
+        background: white;
+        border-radius: 9px;
+        width: 32px;
+        height: 32px;
+        font-size: 19px;
+      }
+      main {
+        padding: 34px 40px 0;
+        max-width: 1750px;
+        margin: 0 auto;
+      }
+      .page-heading {
+        display: flex;
+        justify-content: space-between;
+        gap: 22px;
+        align-items: center;
+        margin-bottom: 30px;
+      }
+      .page-heading .eyebrow {
+        color: var(--orange);
+        margin-bottom: 6px;
+      }
+      h1 {
+        font-family: Manrope, sans-serif;
+        font-size: 32px;
+        letter-spacing: -1.2px;
+        line-height: 1.25;
+        margin: 0 0 8px;
+        font-weight: 800;
+      }
+      .page-heading p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .clock-control {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        font-size: 10px;
+        color: var(--muted);
+      }
+      .clock-control input {
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        padding: 7px 10px;
+        background: #fff;
+        color: var(--ink);
+        font-size: 11px;
+      }
+      .clock-control small {
+        font-size: 10px;
+      }
+      .client-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.9fr) minmax(285px, 1fr);
+        gap: 24px;
+      }
+      .card {
+        background: white;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        overflow: hidden;
+      }
+      .chat-panel {
+        display: flex;
+        flex-direction: column;
+        min-height: 650px;
+        max-height: 790px;
+        box-shadow: 0 8px 25px #30433204;
+      }
+      .panel-heading {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 22px 24px;
+        border-bottom: 1px solid var(--line);
+      }
+      h2 {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 700;
+      }
+      .panel-heading p {
+        margin: 3px 0 0;
+        font-size: 10px;
+        color: var(--muted);
+      }
+      .panel-heading > .tag:last-child {
+        margin-left: auto;
+      }
+      .assistant-badge {
+        height: 41px;
+        width: 41px;
+        border-radius: 13px;
+        background: var(--orange-soft);
+        color: var(--orange);
+        font-size: 29px;
+        display: grid;
+        place-items: center;
+      }
+      .status-dot {
+        width: 5px;
+        height: 5px;
+        display: inline-block;
+        background: #468969;
+        border-radius: 50%;
+        margin-right: 4px;
+      }
+      .tag {
+        display: inline-block;
+        border-radius: 5px;
+        font-size: 9px;
+        letter-spacing: 0.1px;
+        padding: 3px 7px;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .soft {
+        background: #f1f4ee;
+        color: #64746b;
+      }
+      .amber {
+        background: #fff4db;
+        color: #946314;
+      }
+      .success {
+        background: #eaf4ed;
+        color: #367454;
+      }
+      .danger {
+        background: #ffe9e6;
+        color: #a7372b;
+      }
+      .chat-body {
+        padding: 24px;
+        overflow: auto;
+        flex: 1;
+        min-height: 210px;
+        scroll-behavior: smooth;
+      }
+      .message {
+        max-width: 93%;
+        margin: 0 0 19px;
+      }
+      .message.user {
+        margin-left: auto;
+        max-width: 82%;
+      }
+      .message-name {
+        font-size: 10px;
+        color: var(--muted);
+        margin: 0 0 5px;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .message.user .message-name {
+        justify-content: flex-end;
+      }
+      .bubble {
+        border: 1px solid var(--line);
+        background: #f9faf7;
+        padding: 16px 17px;
+        border-radius: 0 13px 13px 13px;
+        font-size: 13px;
+        line-height: 1.7;
+        overflow-wrap: anywhere;
+        white-space: pre-line;
+      }
+      .message.user .bubble {
+        background: var(--dark);
+        border: 0;
+        color: white;
+        border-radius: 13px 0 13px 13px;
+        padding: 12px 16px;
+      }
+      .message.human .bubble {
+        border-color: #bdd7c4;
+        background: #f3f9f3;
+      }
+      .message .sources {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+      }
+      .source-chip {
+        font-size: 9px;
+        border: 1px solid #dedfd5;
+        background: #fff;
+        border-radius: 4px;
+        padding: 3px 7px;
+        text-decoration: none;
+        color: #53665a;
+        white-space: nowrap;
+      }
+      .message .meta {
+        color: var(--muted);
+        font-size: 9px;
+        margin-top: 7px;
+      }
+      .quick-prompts {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        padding: 0 24px 16px;
+      }
+      .quick-prompts button {
+        border: 1px solid #e4e7df;
+        border-radius: 7px;
+        background: #fff;
+        padding: 8px 10px;
+        font-size: 10px;
+        transition: 0.15s;
+      }
+      .quick-prompts button:hover {
+        border-color: #dd8d5a;
+        background: #fff8f2;
+      }
+      .composer {
+        display: flex;
+        gap: 10px;
+        border: 1px solid #dce2d6;
+        border-radius: 10px;
+        padding: 8px;
+        margin: 0 24px;
+        background: #fff;
+      }
+      .composer input {
+        min-width: 0;
+        flex: 1;
+        border: 0;
+        background: none;
+        font-size: 12px;
+        padding: 5px;
+      }
+      .send-button {
+        width: 34px;
+        height: 34px;
+        flex-shrink: 0;
+        background: var(--orange);
+        color: #fff;
+        border: 0;
+        border-radius: 7px;
+        font-size: 23px;
+      }
+      .chat-footnote {
+        font-size: 9px;
+        color: #778578;
+        padding: 9px 24px 16px;
+      }
+      .escape-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        background: #fcfcf9;
+        border-top: 1px solid var(--line);
+        padding: 13px 24px;
+      }
+      .escape-actions button {
+        border: 0;
+        background: none;
+        font-size: 10px;
+        padding: 4px 0;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+      .escape-actions button:first-child {
+        color: var(--green);
+        font-size: 11px;
+        font-weight: 650;
+        margin-right: auto;
+        text-decoration: none;
+      }
+      .client-context {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+      .account-card {
+        background: var(--dark);
+        color: #fff;
+        border-radius: var(--radius);
+        padding: 22px 24px;
+        position: relative;
+        overflow: hidden;
+      }
+      .account-card:after {
+        content: '';
+        position: absolute;
+        width: 140px;
+        height: 140px;
+        border: 1px solid #537263;
+        border-radius: 50%;
+        right: -72px;
+        top: 29px;
+        box-shadow:
+          0 0 0 21px #ffffff06,
+          0 0 0 43px #ffffff04;
+      }
+      .row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+      }
+      .account-card .eyebrow {
+        font-size: 8px;
+        letter-spacing: 1.1px;
+        color: #d3e4d9;
+      }
+      .balance-label {
+        font-size: 11px;
+        margin: 24px 0 2px;
+        color: #cedbd3;
+      }
+      .balance-label .tag {
+        background: #ffffff15;
+        color: #c2d7c8;
+        margin-left: 4px;
+        font-size: 8px;
+      }
+      .balance {
+        font-family: Manrope, sans-serif;
+        font-size: 29px;
+        font-weight: 600;
+        letter-spacing: -0.7px;
+      }
+      .account-id {
+        font-size: 9px;
+        color: #c6d9cb;
+        margin: 9px 0 19px;
+      }
+      .account-source {
+        border-top: 1px solid #ffffff20;
+        padding-top: 12px;
+        color: #c6d9cb;
+        font-size: 9px;
+      }
+      .operations {
+        padding: 20px 21px;
+      }
+      .operations h2 {
+        font-size: 13px;
+      }
+      .operation {
+        display: flex;
+        width: 100%;
+        align-items: flex-start;
+        gap: 12px;
+        text-align: left;
+        border: 0;
+        border-bottom: 1px solid var(--line);
+        background: white;
+        padding: 19px 0;
+      }
+      .operation:last-of-type {
+        border: 0;
+      }
+      .operation > div {
+        flex: 1;
+      }
+      .operation strong {
+        font-size: 12px;
+        display: block;
+      }
+      .operation small {
+        font-size: 9px;
+        color: var(--muted);
+        display: block;
+        margin: 3px 0 9px;
+      }
+      .operation b {
+        display: block;
+        font-size: 14px;
+        margin-bottom: 7px;
+        font-weight: 600;
+      }
+      .operation-icon {
+        width: 30px;
+        height: 30px;
+        display: grid;
+        place-items: center;
+        background: #fff0e7;
+        border-radius: 10px;
+        color: var(--orange);
+        font-size: 19px;
+      }
+      .operation-icon.green {
+        background: #eef3ec;
+        color: var(--green);
+      }
+      .source-note {
+        font-size: 9px;
+        display: block;
+        color: var(--muted);
+        border-top: 1px solid var(--line);
+        padding-top: 12px;
+      }
+      .trust-card {
+        display: flex;
+        gap: 12px;
+        padding: 4px 10px;
+      }
+      .trust-icon {
+        font-size: 28px;
+        color: var(--green);
+      }
+      h3 {
+        font-size: 12px;
+        margin: 0 0 4px;
+      }
+      .trust-card p {
+        font-size: 10px;
+        color: var(--muted);
+        margin: 0;
+        line-height: 1.7;
+      }
+      .demo-scenarios {
+        padding: 8px 10px 0;
+      }
+      .demo-scenarios .eyebrow {
+        font-size: 9px;
+      }
+      .demo-scenarios button {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        background: none;
+        border: 0;
+        border-bottom: 1px solid var(--line);
+        padding: 10px 0;
+        font-size: 10px;
+        text-align: left;
+      }
+      .main-footer {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        font-size: 9px;
+        color: #869087;
+        padding: 24px 0;
+      }
+      .main-footer b {
+        padding: 0 4px;
+        color: #bdc6bb;
+      }
+      .agent-notice {
+        font-size: 11px;
+        background: #f0f2e9;
+        border: 1px solid #e1e6d8;
+        border-radius: 8px;
+        padding: 10px 14px;
+        margin-bottom: 18px;
+        color: #60705e;
+      }
+      .agent-grid {
+        display: grid;
+        grid-template-columns: 220px minmax(240px, 1fr) minmax(310px, 1.1fr);
+        gap: 16px;
+        align-items: start;
+      }
+      .compact {
+        padding: 18px;
+      }
+      .ticket-panel {
+        min-height: 560px;
+      }
+      .queue-caption {
+        font-size: 10px;
+        color: var(--muted);
+        padding: 14px 16px 8px;
+      }
+      .ticket-item {
+        padding: 16px;
+        border: 0;
+        border-left: 3px solid transparent;
+        border-bottom: 1px solid var(--line);
+        background: white;
+        text-align: left;
+        width: 100%;
+        display: block;
+      }
+      .ticket-item.active {
+        background: #fcf3ec;
+        border-left-color: var(--orange);
+      }
+      .ticket-item strong {
+        display: block;
+        font-size: 11px;
+        margin: 5px 0;
+      }
+      .ticket-item small {
+        font-size: 9px;
+        color: var(--muted);
+        display: block;
+      }
+      .ticket-item .row {
+        font-size: 9px;
+      }
+      .outline-button {
+        border: 1px solid #dce2d7;
+        background: white;
+        border-radius: 7px;
+        padding: 9px 11px;
+        font-size: 10px;
+      }
+      .ticket-panel > .outline-button {
+        margin: 16px;
+      }
+      .agent-conversation {
+        display: flex;
+        flex-direction: column;
+        min-height: 560px;
+        max-height: 850px;
+      }
+      .agent-conversation .chat-body {
+        padding: 18px;
+        min-height: 300px;
+      }
+      .agent-conversation .bubble {
+        font-size: 11px;
+      }
+      .agent-conversation .message {
+        max-width: 100%;
+      }
+      .agent-actions {
+        border-top: 1px solid var(--line);
+        padding: 16px;
+      }
+      .agent-actions small {
+        display: block;
+        font-size: 9px;
+        color: var(--muted);
+        margin-top: 7px;
+      }
+      .copilot-panel {
+        border-color: #d7dfd0;
+      }
+      .copilot-panel > .panel-heading {
+        background: #f0f5ec;
+      }
+      .copilot-title {
+        display: flex;
+        gap: 9px;
+        align-items: center;
+      }
+      .copilot-title > span {
+        font-size: 24px;
+        color: var(--green);
+      }
+      #copilot-content {
+        padding: 18px;
+      }
+      .copilot-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 5px;
+        margin-bottom: 15px;
+      }
+      .copilot-meta button {
+        background: none;
+        border: 0;
+        color: var(--green);
+        font-size: 10px;
+      }
+      .insight {
+        margin: 0 0 17px;
+      }
+      .insight h3 {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--muted);
+        margin: 0 0 6px;
+      }
+      .insight p,
+      .insight li {
+        font-size: 11px;
+        margin: 0;
+        line-height: 1.65;
+      }
+      .insight ul {
+        margin: 0;
+        padding-left: 15px;
+      }
+      .copilot-alert {
+        font-size: 10px;
+        color: #8f5817;
+        background: #fff4dc;
+        border: 1px solid #efdbb5;
+        padding: 10px;
+        border-radius: 7px;
+        margin-bottom: 14px;
+      }
+      .draft-label {
+        font-size: 11px;
+        font-weight: 700;
+        display: block;
+        margin: 17px 0 7px;
+      }
+      .draft {
+        width: 100%;
+        min-height: 155px;
+        border: 1px solid #cbd6c5;
+        border-radius: 8px;
+        resize: vertical;
+        padding: 12px;
+        font-size: 11px;
+        line-height: 1.7;
+        color: var(--ink);
+        background: #fdfefa;
+      }
+      .review-check {
+        display: flex;
+        gap: 7px;
+        align-items: flex-start;
+        font-size: 10px;
+        line-height: 1.6;
+        margin: 12px 0;
+      }
+      .review-check input {
+        accent-color: var(--green);
+        margin-top: 4px;
+      }
+      .primary-button {
+        background: var(--green);
+        color: white;
+        border: 0;
+        border-radius: 8px;
+        padding: 11px 15px;
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .copilot-panel .primary-button {
+        width: 100%;
+      }
+      .followup {
+        margin-top: 16px;
+        border-top: 1px solid var(--line);
+        padding-top: 12px;
+      }
+      .followup summary {
+        font-size: 10px;
+        cursor: pointer;
+      }
+      .followup form {
+        display: flex;
+        gap: 5px;
+        margin-top: 8px;
+      }
+      .followup input {
+        min-width: 0;
+        flex: 1;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        font-size: 10px;
+        padding: 7px;
+      }
+      .followup button {
+        font-size: 10px;
+        border: 0;
+        background: #eef3e9;
+        border-radius: 6px;
+      }
+      .followup p {
+        font-size: 10px;
+      }
+      .empty-state {
+        text-align: center;
+        padding: 55px 15px;
+        color: var(--muted);
+      }
+      .empty-state > span {
+        font-size: 36px;
+        color: #99b09b;
+      }
+      .empty-state h3 {
+        font-size: 13px;
+        color: var(--ink);
+        margin: 14px 0 7px;
+      }
+      .empty-state p {
+        font-size: 11px;
+      }
+      .protocol-banner {
+        background: #eef5ec;
+        border: 1px solid #d6e3ce;
+        padding: 12px 14px;
+        border-radius: 8px;
+        margin-bottom: 17px;
+        font-size: 11px;
+      }
+      .protocol-banner strong {
+        display: block;
+      }
+      .source-row {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+      }
+      .fraud-alert {
+        background: #fff0ec;
+        border-color: #ecc8bd;
+      }
+      .inline-action {
+        margin-top: 10px;
+        border: 1px solid #b76b55;
+        background: white;
+        color: #9a3e27;
+        border-radius: 7px;
+        padding: 8px 11px;
+        font-size: 10px;
+      }
+      #toast {
+        position: fixed;
+        left: 50%;
+        bottom: 24px;
+        transform: translateX(-50%);
+        background: var(--dark);
+        color: white;
+        padding: 13px 20px;
+        border-radius: 10px;
+        box-shadow: 0 8px 28px #0002;
+        max-width: 90%;
+        font-size: 12px;
+        z-index: 50;
+        opacity: 0;
+        pointer-events: none;
+        transition: 0.2s;
+      }
+      #toast.visible {
+        opacity: 1;
+      }
+      dialog {
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        max-width: 540px;
+        padding: 35px;
+        color: var(--ink);
+        box-shadow: 0 20px 80px #0002;
+      }
+      dialog::backdrop {
+        background: #18302588;
+        backdrop-filter: blur(3px);
+      }
+      dialog h2 {
+        font:
+          800 24px Manrope,
+          sans-serif;
+        letter-spacing: -0.5px;
+        margin: 10px 0 18px;
+      }
+      dialog p,
+      dialog li {
+        font-size: 13px;
+        line-height: 1.8;
+      }
+      dialog a {
+        font-size: 12px;
+      }
+      dialog .primary-button {
+        display: block;
+        margin-top: 25px;
+      }
+      dialog > .close-dialog {
+        position: absolute;
+        right: 15px;
+        top: 15px;
+      }
+      .protocol-link {
+        display: block;
+        font-size: 10px;
+        margin-top: 8px;
+        color: var(--green);
+        border: 0;
+        background: none;
+        padding: 0;
+        text-decoration: underline;
+      }
+      .agent-conversation .panel-heading {
+        display: block;
+      }
+      .agent-conversation .panel-heading p {
+        line-height: 1.7;
+      }
+      .status-line {
+        font-size: 9px;
+        color: var(--muted);
+      }
+      @media (min-width: 1600px) {
+        main {
+          padding-left: 50px;
+          padding-right: 50px;
+        }
+        .chat-panel {
+          min-height: 720px;
+        }
+        .agent-grid {
+          grid-template-columns: 250px minmax(300px, 1fr) minmax(350px, 1fr);
+        }
+      }
+      @media (max-width: 1250px) {
+        .sidebar {
+          width: 190px;
+          padding: 28px 16px;
+        }
+        .shell {
+          margin-left: 190px;
+        }
+        main {
+          padding: 28px 25px 0;
+        }
+        .topbar {
+          padding: 0 25px;
+        }
+        .client-grid {
+          gap: 18px;
+          grid-template-columns: minmax(0, 1.6fr) minmax(260px, 1fr);
+        }
+        h1 {
+          font-size: 27px;
+        }
+        .agent-grid {
+          grid-template-columns: 190px minmax(0, 1fr);
+        }
+        .copilot-panel {
+          grid-column: 2;
+        }
+        .ticket-panel {
+          grid-row: span 2;
+        }
+        .agent-conversation {
+          max-height: 580px;
+          min-height: 400px;
+        }
+      }
+      @media (max-width: 940px) {
+        .sidebar {
+          width: 78px;
+          padding: 25px 12px;
+        }
+        .brand {
+          font-size: 0;
+          justify-content: center;
+        }
+        .fruit {
+          margin: 0;
+        }
+        .brand-dot,
+        .brand-sub,
+        .side-label,
+        .side-note,
+        .text-button,
+        .sidebar-footer,
+        .nav-count {
+          display: none;
+        }
+        .sidebar nav {
+          margin-top: 40px;
+        }
+        .nav-item {
+          padding: 13px;
+          display: block;
+          text-align: center;
+          font-size: 0;
+        }
+        .nav-item > span:first-child {
+          font-size: 23px;
+        }
+        .shell {
+          margin-left: 78px;
+        }
+        .client-grid {
+          grid-template-columns: minmax(0, 1fr) 260px;
+        }
+        .page-heading {
+          align-items: flex-start;
+        }
+        .clock-control {
+          max-width: 190px;
+        }
+        .chat-panel {
+          min-height: 715px;
+        }
+        .panel-heading {
+          padding: 18px;
+        }
+        .chat-body {
+          padding: 18px;
+        }
+        .quick-prompts {
+          padding-left: 18px;
+          padding-right: 18px;
+        }
+        .composer {
+          margin: 0 18px;
+        }
+        .chat-footnote {
+          padding-left: 18px;
+          padding-right: 18px;
+        }
+        .escape-actions {
+          padding: 12px 18px;
+        }
+        .account-card {
+          padding: 20px;
+        }
+        .operations {
+          padding: 18px;
+        }
+        .balance {
+          font-size: 25px;
+        }
+        .page-heading p {
+          font-size: 12px;
+        }
+        .clock-control label {
+          font-size: 9px;
+        }
+        .agent-grid {
+          grid-template-columns: 180px minmax(0, 1fr);
+        }
+      }
+      @media (max-width: 720px) {
+        .sidebar {
+          position: relative;
+          width: 100%;
+          padding: 16px 20px;
+          flex-direction: row;
+          align-items: center;
+          justify-content: space-between;
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+        .brand {
+          font-size: 28px;
+          letter-spacing: -1.5px;
+        }
+        .brand-dot {
+          display: block;
+        }
+        .fruit {
+          width: 20px;
+          height: 21px;
+          margin-right: 7px;
+        }
+        .fruit:before {
+          width: 10px;
+          height: 6px;
+          top: -3px;
+          left: 9px;
+        }
+        .sidebar nav {
+          display: flex;
+          margin: 0;
+          gap: 4px;
+        }
+        .nav-item {
+          width: auto;
+          margin: 0;
+          display: flex;
+          padding: 9px 11px;
+          gap: 7px;
+          font-size: 11px;
+        }
+        .nav-item > span:first-child {
+          font-size: 15px;
+        }
+        .shell {
+          margin-left: 0;
+        }
+        .topbar {
+          height: 48px;
+          padding: 0 20px;
+        }
+        .breadcrumb {
+          font-size: 10px;
+        }
+        .breadcrumb > span {
+          padding: 0 5px;
+        }
+        .demo-pill {
+          font-size: 7px;
+          padding: 4px 6px;
+        }
+        .top-right {
+          gap: 8px;
+        }
+        .icon-button {
+          width: 27px;
+          height: 27px;
+          font-size: 16px;
+        }
+        main {
+          padding: 23px 16px 0;
+        }
+        .page-heading {
+          margin-bottom: 20px;
+          display: block;
+        }
+        .page-heading h1 {
+          font-size: 27px;
+        }
+        .page-heading .eyebrow {
+          font-size: 9px;
+        }
+        .clock-control {
+          margin-top: 17px;
+          max-width: 100%;
+          display: grid;
+          grid-template-columns: 1fr 165px;
+          gap: 3px 10px;
+          align-items: center;
+        }
+        .clock-control input {
+          grid-column: 2;
+          grid-row: 1 / span 2;
+          font-size: 10px;
+          padding: 7px;
+        }
+        .clock-control small {
+          font-size: 9px;
+        }
+        .clock-control label {
+          font-size: 9px;
+        }
+        .client-grid {
+          grid-template-columns: 1fr;
+          gap: 20px;
+        }
+        .chat-panel {
+          min-height: 610px;
+          max-height: 730px;
+        }
+        .client-context {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 15px;
+        }
+        .account-card,
+        .operations {
+          grid-column: span 2;
+        }
+        .trust-card,
+        .demo-scenarios {
+          grid-column: span 2;
+        }
+        .operations .operation {
+          padding: 15px 0;
+        }
+        .client-context .account-card {
+          min-height: 215px;
+        }
+        .balance {
+          font-size: 30px;
+        }
+        .main-footer {
+          font-size: 8px;
+          display: block;
+          line-height: 2;
+        }
+        .main-footer > span {
+          display: block;
+        }
+        .agent-grid {
+          grid-template-columns: 1fr;
+        }
+        .ticket-panel {
+          grid-row: auto;
+          min-height: 0;
+        }
+        .copilot-panel {
+          grid-column: auto;
+        }
+        .ticket-panel > .outline-button {
+          margin: 10px 16px;
+        }
+        .ticket-item {
+          padding: 12px 16px;
+        }
+        .agent-conversation {
+          min-height: 450px;
+          max-height: 650px;
+        }
+        .copilot-panel {
+          margin-bottom: 10px;
+        }
+        .agent-notice {
+          font-size: 10px;
+        }
+        .panel-heading > .tag:last-child {
+          font-size: 8px;
+        }
+        .bubble {
+          font-size: 12px;
+        }
+        .escape-actions button {
+          font-size: 9px;
+        }
+        .escape-actions button:first-child {
+          font-size: 10px;
+        }
+        .chat-footnote {
+          font-size: 8px;
+        }
+        dialog {
+          margin: auto 16px;
+          padding: 30px 24px;
+          max-width: calc(100% - 32px);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          scroll-behavior: auto !important;
+          transition: none !important;
+        }
+      }
+      @media (min-width: 941px) and (max-width: 1250px) {
+        .agent-grid {
+          grid-template-columns: 180px minmax(230px, 1fr) minmax(280px, 1.1fr);
+          gap: 12px;
+        }
+        .ticket-panel {
+          grid-row: auto;
+        }
+        .copilot-panel {
+          grid-column: auto;
+        }
+        .agent-conversation {
+          max-height: 850px;
+          min-height: 560px;
+        }
+        .agent-grid .compact {
+          padding: 15px;
+        }
+        .agent-grid .ticket-item {
+          padding: 13px;
+        }
+        .agent-grid #copilot-content {
+          padding: 15px;
+        }
+      }
+      .login-screen {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 50px 24px;
+        background: radial-gradient(ellipse at 15% 0%, #f6eadc 0%, transparent 55%), var(--paper);
+      }
+      .login-wrap {
+        width: 100%;
+        max-width: 930px;
+      }
+      .login-wrap > .brand {
+        display: inline-flex;
+        margin-bottom: 35px;
+      }
+      .login-wrap > .demo-pill {
+        float: right;
+        margin-top: 13px;
+      }
+      .login-wrap > h1 {
+        font-size: 40px;
+        letter-spacing: -1.5px;
+      }
+      .login-intro {
+        color: var(--muted);
+        margin: 10px 0 30px;
+      }
+      .login-cards {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+      }
+      .login-card {
+        background: white;
+        padding: 30px;
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        box-shadow: 0 10px 30px #20382a05;
+        display: flex;
+        flex-direction: column;
+      }
+      .login-icon {
+        font-size: 30px;
+        color: var(--orange);
+        margin-bottom: 14px;
+      }
+      .agent-entry .login-icon {
+        color: var(--green);
+      }
+      .login-card h2 {
+        font:
+          800 23px Manrope,
+          sans-serif;
+        letter-spacing: -0.5px;
+      }
+      .login-card > p {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .login-card label {
+        font-size: 11px;
+        font-weight: 650;
+        margin: 17px 0 7px;
+      }
+      .login-card select {
+        font: inherit;
+        background: #fafbf7;
+        border: 1px solid #dce3d5;
+        color: var(--ink);
+        border-radius: 9px;
+        padding: 12px;
+        width: 100%;
+      }
+      .login-card .primary-button {
+        margin-top: auto;
+        padding: 13px;
+        font-size: 12px;
+      }
+      .login-card:first-child .primary-button {
+        background: var(--orange);
+      }
+      .persona-description {
+        min-height: 54px;
+        line-height: 1.8;
+      }
+      .agent-persona {
+        display: flex;
+        flex-direction: column;
+        background: #f0f5ec;
+        padding: 18px;
+        border-radius: 10px;
+        margin-top: 17px;
+      }
+      .agent-persona strong {
+        font-size: 12px;
+      }
+      .agent-persona span {
+        font-size: 10px;
+        color: var(--muted);
+        margin-top: 5px;
+      }
+      .login-disclaimer {
+        font-size: 11px;
+        color: var(--muted);
+        line-height: 1.8;
+        margin: 24px 5px 10px;
+      }
+      .login-source {
+        font-size: 11px;
+      }
+      .persona-test-bar {
+        border: 1px solid #e4dfd4;
+        background: #fffcf6;
+        border-radius: 12px;
+        padding: 14px 18px;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+      }
+      .persona-test-bar p {
+        font-size: 10px;
+        color: var(--muted);
+        margin: 4px 0 0;
+      }
+      .persona-test-bar .eyebrow {
+        font-size: 9px;
+      }
+      #persona-examples {
+        display: flex;
+        gap: 7px;
+        flex-wrap: wrap;
+      }
+      #persona-examples button {
+        border: 1px solid #e3d6c1;
+        background: white;
+        color: var(--ink);
+        padding: 8px 11px;
+        font-size: 10px;
+        border-radius: 7px;
+        text-align: left;
+      }
+      #persona-examples button small {
+        display: block;
+        font-size: 8px;
+        color: var(--muted);
+        margin-top: 3px;
+      }
+      #logout {
+        padding: 12px 15px;
+        color: var(--green);
+        font-size: 11px;
+      }
+      .operation .tag {
+        white-space: normal;
+      }
+      .client-context .operations .operation {
+        cursor: pointer;
+      }
+      .agent-grid .ticket-item .tag {
+        white-space: normal;
+      }
+      .sidebar nav #session-nav > span:last-child {
+        font-size: 13px;
+      }
+      .record-label {
+        font-size: 10px;
+        color: var(--muted);
+      }
+      @media (max-width: 940px) {
+        #logout {
+          display: block;
+          font-size: 9px;
+          padding: 12px 0;
+          text-align: center;
+        }
+        .sidebar nav #session-nav > span:last-child {
+          display: none;
+        }
+        .persona-test-bar {
+          display: block;
+        }
+        #persona-examples {
+          margin-top: 12px;
+        }
+        .sidebar #session-avatar {
+          display: none;
+        }
+      }
+      @media (max-width: 720px) {
+        .login-screen {
+          padding: 30px 18px;
+        }
+        .login-wrap > .brand {
+          font-size: 35px;
+        }
+        .login-wrap > h1 {
+          font-size: 31px;
+        }
+        .login-cards {
+          grid-template-columns: 1fr;
+          gap: 16px;
+        }
+        .login-card {
+          padding: 24px;
+        }
+        .login-wrap > .demo-pill {
+          font-size: 7px;
+        }
+        .login-intro {
+          font-size: 13px;
+        }
+        .login-disclaimer {
+          font-size: 10px;
+        }
+        .sidebar nav {
+          display: none;
+        }
+        .sidebar #logout {
+          padding: 7px 10px;
+          font-size: 11px;
+        }
+        .persona-test-bar {
+          padding: 13px;
+        }
+        .login-card .persona-description {
+          min-height: 0;
+          margin-bottom: 20px;
+        }
+      }
+      .advice-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 14px;
+        white-space: normal;
+      }
+      .advice-actions button {
+        border: 1px solid #d2ddca;
+        border-radius: 7px;
+        background: white;
+        color: var(--green);
+        padding: 9px 12px;
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .advice-actions button:first-child {
+        background: var(--green);
+        color: white;
+        border-color: var(--green);
+      }
+      .escape-actions {
+        background: #fcfcf9;
+      }
+      .escape-actions button:first-child {
+        font-size: 12px;
+        padding: 6px 0;
+      }
+      .bubble .advice-actions button {
+        line-height: 1.4;
+      }
+    </style>
+  </head>
+  <body>
+    <section id="login-screen" class="login-screen" aria-label="Entrada da demonstração">
+      <div class="login-wrap">
+        <a class="brand" href="#"
+          ><span class="fruit" aria-hidden="true"></span>caqui<span class="brand-dot">.</span></a
+        ><span class="demo-pill"><i></i> LOGIN DE DEMONSTRAÇÃO</span>
+        <h1>Cada pessoa, seu espaço.</h1>
+        <p class="login-intro">
+          Escolha como explorar o atendimento. Sem senha, sem conta real e sem movimentar dinheiro.
+        </p>
+        <div class="login-cards">
+          <section class="login-card">
+            <span class="login-icon">◉</span>
+            <h2>Sou cliente</h2>
+            <p>Converse usando uma persona sintética do case.</p>
+            <label for="persona-select">Persona de teste</label
+            ><select id="persona-select"></select>
+            <p id="persona-description" class="persona-description"></p>
+            <button id="login-client" class="primary-button">Entrar como cliente →</button>
+          </section>
+          <section class="login-card agent-entry">
+            <span class="login-icon">✳</span>
+            <h2>Sou atendente</h2>
+            <p>Continue os casos com histórico e apoio do copiloto.</p>
+            <div class="agent-persona">
+              <strong>Jonas · atendente de demonstração</strong
+              ><span>Persona do CASE.md · 2 meses de experiência</span>
+            </div>
+            <p class="persona-description">
+              Veja os protocolos criados neste navegador, separados por cliente.
+            </p>
+            <button id="login-agent" class="primary-button">Entrar como atendente →</button>
+          </section>
+        </div>
+        <p class="login-disclaimer">
+          Acesso e permissões são simulados, não autenticação ou isolamento de produção. Dados públicos
+          fictícios ficam no navegador; não há sincronização entre aparelhos. Nunca use dados ou senhas reais.
+        </p>
+        <a
+          class="login-source"
+          href="https://github.com/RodolfoSilva/caqui-chatbot/tree/master/caqui-invest/dados"
+          target="_blank"
+          rel="noreferrer"
+          >Personas e exemplos do repositório ↗</a
+        >
+      </div>
+    </section>
+    <a class="skip" href="#main">Pular para o conteúdo</a>
+    <aside class="sidebar" hidden>
+      <a class="brand" href="#" aria-label="Caqui Atende, início"
+        ><span class="fruit" aria-hidden="true"></span>caqui<span class="brand-dot">.</span></a
+      ><span class="brand-sub">INVEST · ATENDE</span>
+      <div class="side-label">SEU ESPAÇO</div>
+      <nav aria-label="Navegação da sessão">
+        <button class="nav-item active" id="session-nav">
+          <span aria-hidden="true">◉</span><span id="session-nav-label">Atendimento</span>
+        </button>
+      </nav>
+      <button id="logout" class="text-button">⇥ Sair / trocar perfil</button>
+      <div class="side-note">
+        <span class="small-leaf" aria-hidden="true">✳</span>
+        <h3>Tecnologia que acolhe.</h3>
+        <p>A IA ajuda. Uma pessoa continua quando você precisar.</p>
+      </div>
+      <button class="text-button" id="about-open">Sobre esta demonstração ↗</button>
+      <div class="sidebar-footer">
+        <span class="avatar" id="session-avatar">CT</span>
+        <div>
+          <strong id="session-name">Celina Teixeira</strong
+          ><small id="session-id">Conta sintética · C-0007</small>
+        </div>
+      </div>
+    </aside>
+    <div class="shell" hidden>
+      <header class="topbar">
+        <span class="breadcrumb"
+          >Caqui Atende <span>/</span> <b id="view-label">Experiência do cliente</b></span
+        >
+        <div class="top-right">
+          <span class="demo-pill"><i></i> DEMONSTRAÇÃO</span
+          ><button
+            id="reset"
+            class="icon-button"
+            title="Reiniciar demonstração"
+            aria-label="Reiniciar demonstração"
+          >
+            ↺
+          </button>
+        </div>
+      </header>
+      <main id="main">
+        <div class="page-heading">
+          <div>
+            <div class="eyebrow">BOM DIA, CELINA</div>
+            <h1 id="page-title">Como podemos ajudar?</h1>
+            <p id="page-description">Respostas claras. Seu contexto sempre junto.</p>
+          </div>
+          <div class="clock-control">
+            <label for="demo-clock">Relógio da demonstração · Brasília</label
+            ><input
+              id="demo-clock"
+              type="datetime-local"
+              value="2026-11-18T10:00"
+              min="2026-10-01T00:00"
+              max="2027-12-30T23:59"
+            /><small id="hours">Humano: 8h–20h · segurança: 24h</small>
+          </div>
+        </div>
+        <section id="client-view" aria-label="Área do cliente">
+          <section class="persona-test-bar">
+            <div>
+              <span class="eyebrow">EXEMPLOS DESTA PERSONA</span>
+              <p id="persona-test-note"></p>
+            </div>
+            <div id="persona-examples"></div>
+          </section>
+          <div class="client-grid">
+            <section class="chat-panel card">
+              <div class="panel-heading">
+                <div class="assistant-badge" aria-hidden="true">✳</div>
+                <div>
+                  <h2>Caqui Assistente</h2>
+                  <p><span class="status-dot"></span> Respostas com fontes · dados fictícios</p>
+                </div>
+                <span class="tag soft">IA simulada</span>
+              </div>
+              <div
+                class="chat-body"
+                id="client-chat"
+                role="log"
+                aria-live="polite"
+                aria-label="Conversa com assistente"
+              ></div>
+              <div class="quick-prompts" id="quick-prompts">
+                <button data-prompt="O que é liquidez diária?">Entender investimentos</button
+                ><button data-prompt="Onde está meu resgate?">Acompanhar resgate</button
+                ><button data-prompt="Onde encontro meu informe de rendimentos?">Impostos e documentos</button
+                ><button data-prompt="Como faço um Pix?">Transferências</button>
+              </div>
+              <form id="client-form" class="composer">
+                <label class="sr-only" for="client-input">Sua mensagem</label
+                ><input
+                  id="client-input"
+                  maxlength="1500"
+                  autocomplete="off"
+                  placeholder="Conte o que você precisa, sem dados sensíveis…"
+                /><button class="send-button" type="submit" aria-label="Enviar mensagem">↑</button>
+              </form>
+              <div class="chat-footnote">
+                Não informe senhas, códigos ou dados reais. Nenhuma ação financeira é executada.
+              </div>
+              <div class="escape-actions">
+                <button id="human-btn">♧ Falar com uma pessoa</button
+                ><button data-route="complaint">Reclamar</button
+                ><button data-route="close">Encerrar conta</button>
+              </div>
+            </section>
+            <aside class="client-context">
+              <section class="account-card">
+                <div class="row">
+                  <span class="eyebrow">SUA CONTA DE DEMONSTRAÇÃO</span><span aria-hidden="true">↗</span>
+                </div>
+                <p class="balance-label">Saldo em conta <span class="tag">sintético</span></p>
+                <strong class="balance">R$ 4.231,11</strong>
+                <p class="account-id">Celina Teixeira · CPF ***.***.940-**</p>
+                <div class="account-source">Fonte: clientes.json · C-0007</div>
+              </section>
+              <section class="card operations">
+                <div class="row">
+                  <h2>Últimas movimentações</h2>
+                  <span class="tag soft">Leitura</span>
+                </div>
+                <button class="operation" data-prompt="Onde está meu resgate?">
+                  <span class="operation-icon">↙</span>
+                  <div>
+                    <strong>Resgate de fundo</strong><small>Caqui Renda Fixa FIF · OP-10001</small
+                    ><b>R$ 12.000,00</b><span class="tag amber">Em processamento</span>
+                  </div>
+                  <span>›</span></button
+                ><button class="operation" data-prompt="Minha aplicação foi concluída?">
+                  <span class="operation-icon green">↗</span>
+                  <div>
+                    <strong>Aplicação em CDB</strong><small>CDB-LD-100 · OP-10002</small><b>R$ 5.000,00</b
+                    ><span class="tag success">Liquidada</span>
+                  </div>
+                  <span>›</span></button
+                ><small class="source-note"
+                  >Registros sintéticos de operacoes.csv. A previsão não altera o status.</small
+                >
+              </section>
+              <section class="trust-card">
+                <div class="trust-icon" aria-hidden="true">◇</div>
+                <div>
+                  <h3>Você no controle</h3>
+                  <p>
+                    Sem recomendações de investimento. Sem movimentar seu dinheiro. Com saída para uma pessoa
+                    a qualquer momento.
+                  </p>
+                </div>
+              </section>
+              <section class="demo-scenarios">
+                <span class="eyebrow">EXPLORE A DEMO</span
+                ><button id="missing-scenario">Dado ausente → atendimento <span>↗</span></button
+                ><button id="fraud-scenario">Suspeita de golpe <span>↗</span></button
+                ><button id="vulnerable-scenario">Atendimento prioritário <span>↗</span></button>
+              </section>
+            </aside>
+          </div>
+        </section>
+        <section id="agent-view" hidden aria-label="Área do atendente">
+          <div class="agent-notice">
+            ◈ Permissões e papéis simulados. Este protótipo estático não implementa autenticação ou isolamento
+            de produção.
+          </div>
+          <div class="agent-grid">
+            <aside class="card ticket-panel">
+              <div class="panel-heading compact">
+                <h2>Atendimentos</h2>
+                <span class="tag soft" id="queue-total">0</span>
+              </div>
+              <div class="queue-caption">Protocolo + contexto, sem recomeçar</div>
+              <div id="ticket-list"></div>
+              <p class="queue-caption">
+                Para criar um caso, saia e entre como cliente. Os protocolos são locais a este navegador.
+              </p>
+            </aside>
+            <section class="card agent-conversation">
+              <div id="ticket-heading" class="panel-heading compact"><h2>Selecione um atendimento</h2></div>
+              <div id="agent-chat" class="chat-body" role="log" aria-live="polite"></div>
+              <div class="agent-actions">
+                <button id="new-message" class="outline-button">Simular nova mensagem do cliente</button
+                ><small>Uma nova mensagem desatualiza o copiloto.</small>
+              </div>
+            </section>
+            <aside class="card copilot-panel">
+              <div class="panel-heading compact">
+                <div class="copilot-title">
+                  <span aria-hidden="true">✳</span>
+                  <h2>Copiloto</h2>
+                </div>
+                <span class="tag soft">INTERNO</span>
+              </div>
+              <div id="copilot-content">
+                <div class="empty-state">
+                  <span>✳</span>
+                  <h3>O contexto vem junto.</h3>
+                  <p>Abra um atendimento para conferir os fatos e preparar uma resposta.</p>
+                </div>
+              </div>
+            </aside>
+          </div>
+        </section>
+        <footer class="main-footer">
+          <span>Caqui Atende <b>·</b> Protótipo navegável</span
+          ><span>Dados sintéticos · sem integrações · ações simuladas</span>
+        </footer>
+      </main>
+    </div>
+    <div id="toast" role="status" aria-live="polite"></div>
+    <dialog id="about-dialog">
+      <button class="close-dialog icon-button" aria-label="Fechar">×</button>
+      <div class="eyebrow">DEMONSTRAÇÃO, NÃO UM BANCO</div>
+      <h2>Atendimento com continuidade.</h2>
+      <p>
+        Explore entradas separadas: o cliente recebe respostas com fontes; o atendente recebe contexto, fatos
+        conferidos e um rascunho que precisa de revisão humana.
+      </p>
+      <ul>
+        <li>Dados fictícios do case público Caqui Invest.</li>
+        <li>Respostas determinísticas, sem um modelo de IA ou integrações reais.</li>
+        <li>Tickets são salvos apenas neste navegador quando o armazenamento está disponível.</li>
+        <li>O login de demonstração simula papéis; não é uma barreira de acesso de produção.</li>
+        <li>Bloqueio, fila, encaminhamento e envio são apenas simulações.</li>
+      </ul>
+      <p>Regras fictícias do desafio, não orientação financeira ou jurídica.</p>
+      <a href="https://github.com/avenue-community/caqui-invest" target="_blank" rel="noreferrer"
+        >Consultar repositório de referência ↗</a
+      ><button class="primary-button close-dialog">Entendi</button>
+    </dialog>
+    <script>
+      window.DEMO_DATA = {
+        calendar: {
+          descricao:
+            'Calendário de dias úteis da Caqui Invest (fictício, baseado em feriados nacionais). Feriados estaduais e municipais não contam.',
+          inicio: '2026-10-01',
+          fim: '2027-12-31',
+          horario_corte: '16:00',
+          dias: [
+            { data: '2026-10-01', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2026-10-02', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2026-10-03', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2026-10-04', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2026-10-05', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2026-10-06', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2026-10-07', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2026-10-08', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2026-10-09', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2026-10-10', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2026-10-11', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2026-10-12', dia_semana: 'seg', dia_util: false, feriado: 'Nossa Senhora Aparecida' },
+            { data: '2026-10-13', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2026-10-14', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2026-10-15', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2026-10-16', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2026-10-17', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2026-10-18', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2026-10-19', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2026-10-20', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2026-10-21', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2026-10-22', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2026-10-23', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2026-10-24', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2026-10-25', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2026-10-26', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2026-10-27', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2026-10-28', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2026-10-29', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2026-10-30', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2026-10-31', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2026-11-01', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2026-11-02', dia_semana: 'seg', dia_util: false, feriado: 'Finados' },
+            { data: '2026-11-03', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2026-11-04', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2026-11-05', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2026-11-06', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2026-11-07', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2026-11-08', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2026-11-09', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2026-11-10', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2026-11-11', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2026-11-12', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2026-11-13', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2026-11-14', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2026-11-15', dia_semana: 'dom', dia_util: false, feriado: 'Proclamação da República' },
+            { data: '2026-11-16', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2026-11-17', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2026-11-18', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2026-11-19', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2026-11-20', dia_semana: 'sex', dia_util: false, feriado: 'Dia da Consciência Negra' },
+            { data: '2026-11-21', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2026-11-22', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2026-11-23', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2026-11-24', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2026-11-25', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2026-11-26', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2026-11-27', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2026-11-28', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2026-11-29', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2026-11-30', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2026-12-01', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2026-12-02', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2026-12-03', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2026-12-04', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2026-12-05', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2026-12-06', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2026-12-07', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2026-12-08', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2026-12-09', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2026-12-10', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2026-12-11', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2026-12-12', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2026-12-13', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2026-12-14', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2026-12-15', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2026-12-16', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2026-12-17', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2026-12-18', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2026-12-19', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2026-12-20', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2026-12-21', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2026-12-22', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2026-12-23', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2026-12-24', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2026-12-25', dia_semana: 'sex', dia_util: false, feriado: 'Natal' },
+            { data: '2026-12-26', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2026-12-27', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2026-12-28', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2026-12-29', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2026-12-30', dia_semana: 'qua', dia_util: true, feriado: null },
+            {
+              data: '2026-12-31',
+              dia_semana: 'qui',
+              dia_util: false,
+              feriado: 'Último dia do ano (sem expediente)',
+            },
+            { data: '2027-01-01', dia_semana: 'sex', dia_util: false, feriado: 'Confraternização Universal' },
+            { data: '2027-01-02', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-01-03', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-01-04', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-01-05', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-01-06', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-01-07', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-01-08', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-01-09', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-01-10', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-01-11', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-01-12', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-01-13', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-01-14', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-01-15', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-01-16', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-01-17', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-01-18', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-01-19', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-01-20', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-01-21', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-01-22', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-01-23', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-01-24', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-01-25', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-01-26', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-01-27', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-01-28', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-01-29', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-01-30', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-01-31', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-02-01', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-02-02', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-02-03', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-02-04', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-02-05', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-02-06', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-02-07', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-02-08', dia_semana: 'seg', dia_util: false, feriado: 'Carnaval' },
+            { data: '2027-02-09', dia_semana: 'ter', dia_util: false, feriado: 'Carnaval' },
+            { data: '2027-02-10', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-02-11', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-02-12', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-02-13', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-02-14', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-02-15', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-02-16', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-02-17', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-02-18', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-02-19', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-02-20', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-02-21', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-02-22', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-02-23', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-02-24', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-02-25', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-02-26', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-02-27', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-02-28', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-03-01', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-03-02', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-03-03', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-03-04', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-03-05', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-03-06', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-03-07', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-03-08', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-03-09', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-03-10', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-03-11', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-03-12', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-03-13', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-03-14', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-03-15', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-03-16', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-03-17', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-03-18', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-03-19', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-03-20', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-03-21', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-03-22', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-03-23', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-03-24', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-03-25', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-03-26', dia_semana: 'sex', dia_util: false, feriado: 'Sexta-feira Santa' },
+            { data: '2027-03-27', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-03-28', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-03-29', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-03-30', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-03-31', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-04-01', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-04-02', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-04-03', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-04-04', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-04-05', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-04-06', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-04-07', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-04-08', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-04-09', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-04-10', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-04-11', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-04-12', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-04-13', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-04-14', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-04-15', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-04-16', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-04-17', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-04-18', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-04-19', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-04-20', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-04-21', dia_semana: 'qua', dia_util: false, feriado: 'Tiradentes' },
+            { data: '2027-04-22', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-04-23', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-04-24', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-04-25', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-04-26', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-04-27', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-04-28', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-04-29', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-04-30', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-05-01', dia_semana: 'sab', dia_util: false, feriado: 'Dia do Trabalho' },
+            { data: '2027-05-02', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-05-03', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-05-04', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-05-05', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-05-06', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-05-07', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-05-08', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-05-09', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-05-10', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-05-11', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-05-12', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-05-13', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-05-14', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-05-15', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-05-16', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-05-17', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-05-18', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-05-19', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-05-20', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-05-21', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-05-22', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-05-23', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-05-24', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-05-25', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-05-26', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-05-27', dia_semana: 'qui', dia_util: false, feriado: 'Corpus Christi' },
+            { data: '2027-05-28', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-05-29', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-05-30', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-05-31', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-06-01', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-06-02', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-06-03', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-06-04', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-06-05', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-06-06', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-06-07', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-06-08', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-06-09', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-06-10', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-06-11', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-06-12', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-06-13', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-06-14', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-06-15', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-06-16', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-06-17', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-06-18', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-06-19', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-06-20', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-06-21', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-06-22', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-06-23', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-06-24', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-06-25', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-06-26', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-06-27', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-06-28', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-06-29', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-06-30', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-07-01', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-07-02', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-07-03', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-07-04', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-07-05', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-07-06', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-07-07', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-07-08', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-07-09', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-07-10', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-07-11', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-07-12', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-07-13', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-07-14', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-07-15', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-07-16', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-07-17', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-07-18', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-07-19', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-07-20', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-07-21', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-07-22', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-07-23', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-07-24', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-07-25', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-07-26', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-07-27', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-07-28', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-07-29', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-07-30', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-07-31', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-08-01', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-08-02', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-08-03', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-08-04', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-08-05', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-08-06', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-08-07', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-08-08', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-08-09', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-08-10', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-08-11', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-08-12', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-08-13', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-08-14', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-08-15', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-08-16', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-08-17', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-08-18', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-08-19', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-08-20', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-08-21', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-08-22', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-08-23', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-08-24', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-08-25', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-08-26', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-08-27', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-08-28', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-08-29', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-08-30', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-08-31', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-09-01', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-09-02', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-09-03', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-09-04', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-09-05', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-09-06', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-09-07', dia_semana: 'ter', dia_util: false, feriado: 'Independência' },
+            { data: '2027-09-08', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-09-09', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-09-10', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-09-11', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-09-12', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-09-13', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-09-14', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-09-15', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-09-16', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-09-17', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-09-18', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-09-19', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-09-20', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-09-21', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-09-22', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-09-23', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-09-24', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-09-25', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-09-26', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-09-27', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-09-28', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-09-29', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-09-30', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-10-01', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-10-02', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-10-03', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-10-04', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-10-05', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-10-06', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-10-07', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-10-08', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-10-09', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-10-10', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-10-11', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-10-12', dia_semana: 'ter', dia_util: false, feriado: 'Nossa Senhora Aparecida' },
+            { data: '2027-10-13', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-10-14', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-10-15', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-10-16', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-10-17', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-10-18', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-10-19', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-10-20', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-10-21', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-10-22', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-10-23', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-10-24', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-10-25', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-10-26', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-10-27', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-10-28', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-10-29', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-10-30', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-10-31', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-11-01', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-11-02', dia_semana: 'ter', dia_util: false, feriado: 'Finados' },
+            { data: '2027-11-03', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-11-04', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-11-05', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-11-06', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-11-07', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-11-08', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-11-09', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-11-10', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-11-11', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-11-12', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-11-13', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-11-14', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-11-15', dia_semana: 'seg', dia_util: false, feriado: 'Proclamação da República' },
+            { data: '2027-11-16', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-11-17', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-11-18', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-11-19', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-11-20', dia_semana: 'sab', dia_util: false, feriado: 'Dia da Consciência Negra' },
+            { data: '2027-11-21', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-11-22', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-11-23', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-11-24', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-11-25', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-11-26', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-11-27', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-11-28', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-11-29', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-11-30', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-12-01', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-12-02', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-12-03', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-12-04', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-12-05', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-12-06', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-12-07', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-12-08', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-12-09', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-12-10', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-12-11', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-12-12', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-12-13', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-12-14', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-12-15', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-12-16', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-12-17', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-12-18', dia_semana: 'sab', dia_util: false, feriado: null },
+            { data: '2027-12-19', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-12-20', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-12-21', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-12-22', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-12-23', dia_semana: 'qui', dia_util: true, feriado: null },
+            { data: '2027-12-24', dia_semana: 'sex', dia_util: true, feriado: null },
+            { data: '2027-12-25', dia_semana: 'sab', dia_util: false, feriado: 'Natal' },
+            { data: '2027-12-26', dia_semana: 'dom', dia_util: false, feriado: null },
+            { data: '2027-12-27', dia_semana: 'seg', dia_util: true, feriado: null },
+            { data: '2027-12-28', dia_semana: 'ter', dia_util: true, feriado: null },
+            { data: '2027-12-29', dia_semana: 'qua', dia_util: true, feriado: null },
+            { data: '2027-12-30', dia_semana: 'qui', dia_util: true, feriado: null },
+            {
+              data: '2027-12-31',
+              dia_semana: 'sex',
+              dia_util: false,
+              feriado: 'Último dia do ano (sem expediente)',
+            },
+          ],
+        },
+        knowledge: {
+          'KB-001': {
+            title: 'O que é a Caqui Invest',
+            revision: '2026-09-01',
+            url: 'https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-001.md',
+          },
+          'KB-002': {
+            title: 'O que é CDI',
+            revision: '2026-08-15',
+            url: 'https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-002.md',
+          },
+          'KB-003': {
+            title: 'O que é um CDB',
+            revision: '2026-08-15',
+            url: 'https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-003.md',
+          },
+          'KB-004': {
+            title: 'O que é liquidez diária',
+            revision: '2026-08-15',
+            url: 'https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-004.md',
+          },
+          'KB-005': {
+            title: 'Produtos sem liquidez diária',
+            revision: '2026-09-20',
+            url: 'https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-005.md',
+          },
+          'KB-006': {
+            title: 'Prazos de resgate e de aplicação',
+            revision: '2026-10-01',
+            url: 'https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-006.md',
+          },
+          'KB-008': {
+            title: 'Como acompanhar um resgate',
+            revision: '2026-10-01',
+            url: 'https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-008.md',
+          },
+          'KB-009': {
+            title: 'Rentabilidade bruta e líquida',
+            revision: '2026-09-05',
+            url: 'https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-009.md',
+          },
+          'KB-010': {
+            title: 'Imposto de renda na renda fixa',
+            revision: '2026-09-05',
+            url: 'https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-010.md',
+          },
+          'KB-011': {
+            title: 'LCI e LCA',
+            revision: '2026-09-05',
+            url: 'https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-011.md',
+          },
+          'KB-012': {
+            title: 'Comparar com a poupança',
+            revision: '2026-10-10',
+            url: 'https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-012.md',
+          },
+          'KB-013': {
+            title: 'Garantia do FGC',
+            revision: '2026-08-20',
+            url: 'https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-013.md',
+          },
+          'KB-014': {
+            title: 'Fundos de investimento na Caqui',
+            revision: '2026-09-12',
+            url: 'https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-014.md',
+          },
+          'KB-015': {
+            title: 'Tesouro Selic pela Caqui',
+            revision: '2026-09-12',
+            url: 'https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-015.md',
+          },
+          'KB-016': {
+            title: 'Ações: liquidação',
+            revision: '2026-09-12',
+            url: 'https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-016.md',
+          },
+          'KB-017': {
+            title: 'Informe de rendimentos',
+            revision: '2026-10-01',
+            url: 'https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-017.md',
+          },
+          'KB-018': {
+            title: 'Transferências para fora da Caqui',
+            revision: '2026-09-30',
+            url: 'https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-018.md',
+          },
+          'KB-019': {
+            title: 'Segurança: a Caqui nunca pede',
+            revision: '2026-10-15',
+            url: 'https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-019.md',
+          },
+          'KB-020': {
+            title: 'Suspeita de golpe: o que fazer',
+            revision: '2026-10-15',
+            url: 'https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-020.md',
+          },
+          'KB-021': {
+            title: 'Troca de senha e de aparelho',
+            revision: '2026-08-01',
+            url: 'https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-021.md',
+          },
+          'KB-022': {
+            title: 'Atualização de dados cadastrais',
+            revision: '2026-08-01',
+            url: 'https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-022.md',
+          },
+          'KB-023': {
+            title: 'Clientes da parceria com o varejista',
+            revision: '2026-10-20',
+            url: 'https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-023.md',
+          },
+          'KB-024': {
+            title: 'Tarifas',
+            revision: '2026-08-01',
+            url: 'https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-024.md',
+          },
+          'KB-025': {
+            title: 'Falar com uma pessoa',
+            revision: '2026-10-25',
+            url: 'https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-025.md',
+          },
+          'KB-026': {
+            title: 'Protocolo e prazo de resposta',
+            revision: '2026-10-25',
+            url: 'https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-026.md',
+          },
+          'KB-027': {
+            title: 'Reclamação e encerramento de conta',
+            revision: '2026-10-25',
+            url: 'https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-027.md',
+          },
+          'KB-028': {
+            title: 'Atendimento prioritário para pessoa idosa',
+            revision: '2026-10-25',
+            url: 'https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-028.md',
+          },
+          'KB-029': {
+            title: 'Recomendação de investimento',
+            revision: '2026-10-25',
+            url: 'https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-029.md',
+          },
+          'KB-030': {
+            title: 'Produtos que a Caqui não oferece',
+            revision: '2026-10-01',
+            url: 'https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-030.md',
+          },
+        },
+        account: {
+          id: 'C-0007',
+          nome: 'Celina Teixeira',
+          idade: 51,
+          cidade: 'Belo Horizonte',
+          uf: 'MG',
+          cpf_mascarado: '***.***.940-**',
+          canal_preferido: 'app_chat',
+          cliente_desde: '2026-08-04',
+          origem: 'parceria_varejista',
+          saldo_em_conta_brl: 4231.11,
+          nota_persona: null,
+        },
+        clients: [
+          {
+            id: 'C-0001',
+            nome: 'Marta Siqueira',
+            idade: 63,
+            cidade: 'Campinas',
+            uf: 'SP',
+            cpf_mascarado: '***.***.894-**',
+            canal_preferido: 'telefone',
+            cliente_desde: '2026-09-14',
+            origem: 'parceria_varejista',
+            saldo_em_conta_brl: 1250,
+            nota_persona: 'Dona Marta',
+          },
+          {
+            id: 'C-0002',
+            nome: 'Rafael Okada',
+            idade: 27,
+            cidade: 'São Paulo',
+            uf: 'SP',
+            cpf_mascarado: '***.***.400-**',
+            canal_preferido: 'app_chat',
+            cliente_desde: '2023-03-02',
+            origem: 'direto',
+            saldo_em_conta_brl: 3420.55,
+            nota_persona: 'Rafael',
+          },
+          {
+            id: 'C-0003',
+            nome: 'Camila Prates',
+            idade: 41,
+            cidade: 'Recife',
+            uf: 'PE',
+            cpf_mascarado: '***.***.341-**',
+            canal_preferido: 'whatsapp',
+            cliente_desde: '2026-10-22',
+            origem: 'direto',
+            saldo_em_conta_brl: 300000,
+            nota_persona: 'Camila',
+          },
+          {
+            id: 'C-0007',
+            nome: 'Celina Teixeira',
+            idade: 51,
+            cidade: 'Belo Horizonte',
+            uf: 'MG',
+            cpf_mascarado: '***.***.940-**',
+            canal_preferido: 'app_chat',
+            cliente_desde: '2026-08-04',
+            origem: 'parceria_varejista',
+            saldo_em_conta_brl: 4231.11,
+            nota_persona: null,
+          },
+        ],
+        operations: [
+          {
+            id_operacao: 'OP-10006',
+            id_cliente: 'C-0001',
+            tipo: 'aplicacao',
+            produto: 'LCI-90D-92',
+            valor_brl: '20000.00',
+            pedido_em: '2026-10-05T11:02:00-03:00',
+            status: 'liquidada',
+            liquidacao_prevista: '',
+            observacao: '',
+          },
+          {
+            id_operacao: 'OP-10009',
+            id_cliente: 'C-0003',
+            tipo: 'transferencia_entrada',
+            produto: '',
+            valor_brl: '300000.00',
+            pedido_em: '2026-10-23T14:00:00-03:00',
+            status: 'liquidada',
+            liquidacao_prevista: '2026-10-23',
+            observacao: 'herança - TED recebida',
+          },
+          {
+            id_operacao: 'OP-10007',
+            id_cliente: 'C-0002',
+            tipo: 'resgate',
+            produto: 'FUNDO-MM-01',
+            valor_brl: '3000.00',
+            pedido_em: '2026-10-30T17:20:00-03:00',
+            status: 'pendente',
+            liquidacao_prevista: '2026-12-07',
+            observacao: '',
+          },
+          {
+            id_operacao: 'OP-10001',
+            id_cliente: 'C-0007',
+            tipo: 'resgate',
+            produto: 'FUNDO-RF-01',
+            valor_brl: '12000.00',
+            pedido_em: '2026-11-13T17:05:00-03:00',
+            status: 'em_processamento',
+            liquidacao_prevista: '',
+            observacao: '',
+          },
+          {
+            id_operacao: 'OP-10002',
+            id_cliente: 'C-0007',
+            tipo: 'aplicacao',
+            produto: 'CDB-LD-100',
+            valor_brl: '5000.00',
+            pedido_em: '2026-11-16T10:12:00-03:00',
+            status: 'liquidada',
+            liquidacao_prevista: '',
+            observacao: '',
+          },
+          {
+            id_operacao: 'OP-10008',
+            id_cliente: 'C-0002',
+            tipo: 'resgate',
+            produto: 'ACOES',
+            valor_brl: '2200.00',
+            pedido_em: '2026-11-17T10:15:00-03:00',
+            status: 'pendente',
+            liquidacao_prevista: '',
+            observacao: '',
+          },
+          {
+            id_operacao: 'OP-10005',
+            id_cliente: 'C-0001',
+            tipo: 'resgate',
+            produto: 'CDB-LD-110',
+            valor_brl: '40000.00',
+            pedido_em: '2026-11-17T19:40:00-03:00',
+            status: 'em_processamento',
+            liquidacao_prevista: '2026-11-18',
+            observacao: '',
+          },
+        ],
+        dataSource: 'https://github.com/RodolfoSilva/caqui-chatbot/tree/master/caqui-invest/dados',
+        personas: [
+          {
+            id: 'C-0007',
+            label: 'Celina · demonstração original',
+            description: 'Atendimento geral e consulta de resgate.',
+            examples: [
+              {
+                title: 'Consultar resgate',
+                question: 'Onde está meu resgate?',
+                source: 'operacoes.csv · OP-10001',
+              },
+            ],
+          },
+          {
+            id: 'C-0001',
+            label: 'Dona Marta · 63 anos',
+            description: 'Primeiros investimentos; prioridade por idade e atenção a pressão de terceiros.',
+            examples: [
+              {
+                title: 'Conferir aplicação em LCI',
+                question: 'Eu apliquei na LCI e quero ver se o dinheiro está lá mesmo',
+                source: 'conversas.csv · CV-0027',
+              },
+              {
+                title: 'Pressão de terceiro',
+                question: 'Meu sobrinho disse que tenho que tirar tudo hoje e mandar pra ele',
+                source: 'conversas.csv · CV-0297',
+              },
+            ],
+          },
+          {
+            id: 'C-0002',
+            label: 'Rafael · 27 anos',
+            description: 'Cliente que quer uma resposta objetiva sobre imposto e resgate.',
+            examples: [
+              {
+                title: 'Alíquota de imposto',
+                question: 'Se eu resgatar o CDB hoje, qual alíquota pega? Apliquei em 21/05',
+                source: 'conversas.csv · CV-0284',
+              },
+              {
+                title: 'Acompanhar resgate de ações',
+                question: 'Quero consultar o resgate OP-10008.',
+                source: 'operacoes.csv · OP-10008',
+              },
+            ],
+          },
+          {
+            id: 'C-0003',
+            label: 'Camila · 41 anos',
+            description: 'Primeiro investimento após herança; orientação personalizada vai ao especialista.',
+            examples: [
+              {
+                title: 'Primeiro investimento',
+                question: 'Recebi uma herança de 300 mil e nunca investi. Me diz o que fazer',
+                source: 'conversas.csv · CV-0147',
+              },
+              {
+                title: 'Consultar entrada de recursos',
+                question: 'Quero consultar a transferência de entrada OP-10009.',
+                source: 'operacoes.csv · OP-10009',
+              },
+            ],
+          },
+        ],
+      };
+    </script>
+    <script>
+      (function (root) {
+        'use strict';
+        function sanitize(v) {
+          return String(v)
+            .replace(/\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b/g, '***.***.***-**')
+            .replace(/((?:senha|token|c[oó]digo(?: do SMS)?)\s*(?:é|:|=)\s*)\S+/gi, '$1[oculto]');
+        }
+        function normalized(s) {
+          return s
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '');
+        }
+        function forecast(product, datetime, calendar) {
+          if (!product || !datetime || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(datetime)) return null;
+          const days = calendar.dias;
+          let i = days.findIndex((x) => x.data === datetime.slice(0, 10));
+          if (i < 0) return null;
+          const time = datetime.slice(11, 16),
+            later = time > '16:00';
+          if (later || !days[i].dia_util) {
+            i++;
+            while (days[i] && !days[i].dia_util) i++;
+          }
+          if (!days[i]) return null;
+          const base = i;
+          function add(n) {
+            let j = i;
+            while (n > 0) {
+              j++;
+              if (!days[j]) return null;
+              if (days[j].dia_util) n--;
+            }
+            return j;
+          }
+          if (product === 'CDB-LD-100' || product === 'CDB-LD-110')
+            return { base: days[i].data, payment: days[i].data, quote: null };
+          if (product === 'FUNDO-RF-01') {
+            let q = add(1),
+              p = add(2);
+            return q === null || p === null
+              ? null
+              : { base: days[base].data, quote: days[q].data, payment: days[p].data };
+          }
+          if (product === 'TESOURO-SELIC') {
+            let p = add(1);
+            return p === null ? null : { base: days[i].data, quote: null, payment: days[p].data };
+          }
+          if (product === 'ACOES') {
+            let p = add(2);
+            return p === null ? null : { base: days[i].data, quote: null, payment: days[p].data };
+          }
+          return null;
+        }
+        function route(input) {
+          let s = normalized(input);
+          if (
+            /golpe|gerente.*(codigo|sms|token|senha)|ligou.*(codigo|sms|token|senha)|pediu.*(sms|token|senha)|ja.*passei.*codigo|acesso remoto/.test(
+              s,
+            )
+          )
+            return 'fraud';
+          if (/ignore.*regra|outro cliente|c-00(?!07)|fingir|base interna|prompt|instrucoes internas/.test(s))
+            return 'injection';
+          if (
+            /sobrinho|pression|idos|tenho (6\d|[7-9]\d)|confus|nao consigo entender|nao estou entendendo/.test(
+              s,
+            )
+          )
+            return 'vulnerable';
+          if (/reclam/.test(s)) return 'complaint';
+          if (/encerr|cancelar.*conta/.test(s)) return 'close';
+          if (/atendente|pessoa|humano/.test(s)) return 'human';
+          if (
+            /recomend|melhor.*invest|onde.*invest|quero.*(?:investir|aplicar)|como.*investir|comecar.*investir|voce faria|devo.*(aplicar|comprar|invest)|qual.*(investimento|produto).*melhor/.test(
+              s,
+            )
+          )
+            return 'advice';
+          if (/dado ausente|nao encont|sem.*(data|registro)|nao aparece/.test(s)) return 'missing';
+          if (/informe|document/.test(s)) return 'documents';
+          if (/pix|transfer/.test(s)) return 'transfer';
+          if (/imposto|aliquota|\bir\b|tribut/.test(s)) return 'tax';
+          if (/bruto|liquido|poupanca|rendeu|rentabilidade|rendimento/.test(s)) return 'returns';
+          if (/minha aplicacao|aplicacao.*conclu/.test(s)) return 'application';
+          if (/resgate|meu dinheiro|sumiu|operacao/.test(s)) return 'operation';
+          if (/liquidez/.test(s)) return 'liquidity';
+          if (/\bcdb\b/.test(s)) return 'cdb';
+          if (/\blci\b|\blca\b/.test(s)) return 'lci';
+          if (/fundo/.test(s)) return 'funds';
+          if (/tesouro/.test(s)) return 'treasury';
+          if (/aco(es|e)/.test(s)) return 'stocks';
+          if (/cdi/.test(s)) return 'cdi';
+          if (/fgc|garantia/.test(s)) return 'fgc';
+          if (/senha|aparelho|acesso/.test(s)) return 'access';
+          if (/cadastro|endereco|telefone|email|e-mail/.test(s)) return 'profile';
+          if (/tarifa|taxa/.test(s)) return 'fees';
+          if (/cripto|previdencia|cambio|emprestimo|seguro|consorcio/.test(s)) return 'unsupported';
+          if (/saldo/.test(s)) return 'balance';
+          return 'unknown';
+        }
+        const api = { sanitize, normalized, forecast, route };
+        if (typeof module !== 'undefined') module.exports = api;
+        root.CaquiRules = api;
+      })(typeof window !== 'undefined' ? window : globalThis);
+    </script>
+    <script>
+      'use strict';
+      const $ = (s) => document.querySelector(s),
+        $$ = (s) => [...document.querySelectorAll(s)],
+        D = window.DEMO_DATA,
+        R = window.CaquiRules;
+      let currentClientId = 'C-0007',
+        sessionRole = null;
+      const current = () => D.clients.find((c) => c.id === currentClientId);
+      const firstName = () => current().nota_persona || current().nome.split(' ')[0];
+      const money = (n) => Number(n).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      const ownOperations = () => D.operations.filter((o) => o.id_cliente === currentClientId);
+      const esc = (s) =>
+        String(s).replace(
+          /[&<>"']/g,
+          (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c],
+        );
+      const nice = (d) => (d ? d.split('-').reverse().join('/') : 'não disponível');
+      const FAQ = {
+        liquidity: [
+          'Liquidez diária permite pedir resgate em qualquer dia útil. O dinheiro retorna à conta conforme o prazo do produto. Para CDB diário, pedidos até 16h inclusive em dia útil têm previsão no mesmo dia; depois disso, no próximo dia útil. Previsão não é confirmação de liquidação.',
+          ['KB-004', 'KB-006'],
+        ],
+        cdb: [
+          'CDB é um título emitido por um banco: você empresta dinheiro ao banco e recebe juros. Na Caqui há CDB com liquidez diária e CDB com vencimento. No segundo, não há resgate antecipado. O imposto incide sobre o rendimento.',
+          ['KB-003', 'KB-005', 'KB-010'],
+        ],
+        lci: [
+          'Para pessoa física, LCI e LCA são isentas de IR neste case. A LCI Caqui 92 tem carência de 90 dias; antes disso, o resgate é recusado. A LCA Caqui 1 ano só pode ser resgatada no vencimento.',
+          ['KB-011'],
+        ],
+        funds: [
+          'Fundos reúnem recursos de investidores sob gestão profissional. O Caqui Renda Fixa FIF tem administração de 0,5% ao ano e resgate com cotização D+1 e pagamento D+2 úteis, ambos a partir do dia-base. No Multimercado FIF, a taxa é de 1,5% ao ano; a cota pode cair e o prazo é diferente: 30 dias corridos até cotização, ajustada ao próximo útil, mais 2 úteis até o pagamento.',
+          ['KB-014', 'KB-006'],
+        ],
+        treasury: [
+          'O Tesouro Selic é um título público. Pela Caqui, aplicações e resgates liquidam em D+1 útil. O rendimento acompanha a taxa básica de juros. Esta é uma explicação, não uma indicação para investir.',
+          ['KB-015'],
+        ],
+        stocks: [
+          'Compras e vendas de ações liquidam em D+2 úteis. O valor de uma venda fica disponível para saque após a liquidação, não no momento da venda.',
+          ['KB-016'],
+        ],
+        cdi: [
+          'CDI é uma taxa de referência. Um produto a 100% do CDI acompanha essa taxa no período; o rendimento é calculado por dia útil. A taxa pode mudar e não há promessa de rentabilidade futura.',
+          ['KB-002'],
+        ],
+        fgc: [
+          'CDB, LCI e LCA têm cobertura do FGC dentro dos limites por CPF e instituição emissora. Fundos, Tesouro e ações não têm essa garantia. Para limites atualizados, consulte o FGC; esta demo não assume um limite não informado na base.',
+          ['KB-013'],
+        ],
+        documents: [
+          'Você encontra o informe do ano anterior no app, em Perfil > Documentos, até o último dia útil de fevereiro. Esta demonstração orienta o caminho, mas não gera ou baixa documentos reais.',
+          ['KB-017'],
+        ],
+        transfer: [
+          'A Caqui permite transferir saldo para uma conta de mesma titularidade. Pelo Pix, a transferência pode ocorrer a qualquer hora. Não é permitido transferir para conta de outra pessoa. Aqui apenas explicamos: nenhum Pix será realizado.',
+          ['KB-018'],
+        ],
+        tax: [
+          'O IR da renda fixa tributável incide somente sobre o rendimento: 22,5% até 180 dias; 20% de 181 a 360; 17,5% de 361 a 720; e 15% acima de 720. O prazo é em dias corridos e a retenção ocorre no resgate. IOF está fora do material. Não calculamos seu imposto nesta demo.',
+          ['KB-010'],
+        ],
+        returns: [
+          'Compare sempre líquido com líquido. O extrato apresenta o saldo bruto; no resgate, o líquido considera o imposto sobre o rendimento. Uma comparação com poupança exige taxas, período e valores líquidos conferidos. Não há cálculo validado de rentabilidade nesta demo; posso registrar uma análise com atendimento. A Caqui não oferece poupança.',
+          ['KB-009', 'KB-010', 'KB-012'],
+        ],
+        access: [
+          'A troca de senha é feita somente no app, em Perfil > Segurança. Em um novo aparelho, a confirmação é por biometria facial no próprio app. Não envie senha, código ou token nesta conversa.',
+          ['KB-021', 'KB-019'],
+        ],
+        profile: [
+          'Endereço, telefone e e-mail podem ser alterados em Perfil > Meus dados no app. Mudança de nome exige documento e atendimento. Esta demo não altera seus dados nem solicita documentos.',
+          ['KB-022'],
+        ],
+        fees: [
+          'A Caqui não cobra abertura, manutenção ou custódia de renda fixa. Fundos têm taxa de administração: 0,5% ao ano no Renda Fixa FIF e 1,5% ao ano no Multimercado FIF.',
+          ['KB-024', 'KB-014'],
+        ],
+        unsupported: [
+          'A Caqui não oferece poupança, previdência privada, criptoativos, câmbio, seguros, consórcio ou empréstimos. Não tenho uma regra da Caqui para executar ou cotar esses produtos. Posso encaminhar uma dúvida que não esteja coberta.',
+          ['KB-030'],
+        ],
+      };
+      const freshState = () => ({
+        messages: [],
+        tickets: [],
+        selected: null,
+        activeTicket: null,
+        steps: 0,
+        unknown: 0,
+        view: 'client',
+        sequence: 1,
+        adviceOffers: 0,
+      });
+      let profiles = {},
+        storageOK = true;
+      for (const c of D.clients) {
+        profiles[c.id] = freshState();
+        try {
+          let raw = localStorage.getItem('caqui-demo-v2:' + c.id);
+          if (raw) {
+            let parsed = JSON.parse(raw);
+            if (Array.isArray(parsed.messages) && Array.isArray(parsed.tickets) && parsed.clientId === c.id)
+              profiles[c.id] = {
+                ...freshState(),
+                ...parsed,
+                tickets: parsed.tickets.filter((t) => t.clientId === c.id),
+              };
+          }
+        } catch {
+          storageOK = false;
+        }
+      }
+      let state = profiles[currentClientId];
+      function save() {
+        profiles[currentClientId] = state;
+        try {
+          localStorage.setItem(
+            'caqui-demo-v2:' + currentClientId,
+            JSON.stringify({ ...state, clientId: currentClientId }),
+          );
+          storageOK = true;
+          return true;
+        } catch {
+          storageOK = false;
+          return false;
+        }
+      }
+      function allTickets() {
+        return D.clients
+          .flatMap((c) => profiles[c.id].tickets)
+          .sort((a, b) => b.created.localeCompare(a.created));
+      }
+      function stamp() {
+        return $('#demo-clock').value.replace('T', ' ') + ' BRT';
+      }
+      function toast(s) {
+        $('#toast').textContent = s;
+        $('#toast').classList.add('visible');
+        clearTimeout(window.toastTimer);
+        window.toastTimer = setTimeout(() => $('#toast').classList.remove('visible'), 4200);
+      }
+      function sourceHTML(ids = []) {
+        return ids
+          .map((id) => {
+            if (id.startsWith('record:')) return `<span class="source-chip">${esc(id.slice(7))}</span>`;
+            let k = D.knowledge[id];
+            return k
+              ? `<a class="source-chip" href="${esc(k.url)}" target="_blank" rel="noreferrer" title="${esc(k.title)}">${id} · rev. ${nice(k.revision)} ↗</a>`
+              : '';
+          })
+          .join('');
+      }
+      function messageHTML(m) {
+        return `<article class="message ${m.role}"><div class="message-name">${m.role === 'user' ? 'Cliente · ' + esc(firstName()) : m.role === 'human' ? 'Atendente · envio simulado' : 'Caqui Assistente'} <span>· ${esc(m.time?.slice(11, 16) || '10:00')}</span></div><div class="bubble">${esc(m.text)}${m.refs?.length ? `<div class="sources">${sourceHTML(m.refs)}</div>` : ''}${m.action === 'fraud' ? '<button class="inline-action" data-block>Simular bloqueio de acesso</button>' : ''}${m.action === 'advice' && sessionRole === 'client' ? '<div class="advice-actions"><button data-advice-education>Entender as diferenças</button><button data-advice-human>Falar com especialista</button></div>' : ''}${m.ticket ? `<span class="record-label">Contexto salvo no protocolo ${esc(m.ticket)}.</span>` : ''}</div></article>`;
+      }
+      function addMessage(role, text, refs = [], extra = {}) {
+        let m = { role, text: R.sanitize(text), refs, time: stamp(), ...extra };
+        state.messages.push(m);
+        if (state.activeTicket) {
+          let t = state.tickets.find((x) => x.id === state.activeTicket);
+          if (t) {
+            t.messages.push({ ...m });
+            t.revision++;
+            t.updated = stamp();
+          }
+        }
+        save();
+        renderClient();
+        return m;
+      }
+      function renderClient() {
+        let box = $('#client-chat');
+        box.innerHTML = state.messages.map(messageHTML).join('');
+        box.scrollTop = box.scrollHeight;
+        $('#queue-total').textContent = allTickets().length;
+        bindDynamic();
+      }
+      function businessOpen() {
+        let h = Number($('#demo-clock').value.slice(11, 13));
+        return h >= 8 && h < 20;
+      }
+      function handoff(kind, reason, refs = ['KB-025', 'KB-026']) {
+        let existing = state.tickets.find((x) => x.id === state.activeTicket);
+        if (existing) {
+          existing.kind = kind;
+          existing.reason = reason;
+          existing.priority =
+            kind === 'fraud'
+              ? 'Segurança 24h'
+              : kind === 'vulnerable' || current().idade >= 60
+                ? 'Prioritário'
+                : 'Normal';
+          existing.status = kind === 'fraud' ? 'Segurança · simulado' : 'Aguardando · simulado';
+          existing.revision++;
+          addMessage(
+            'assistant',
+            kind === 'fraud'
+              ? 'Atualizei este protocolo para segurança 24h, sem fila. O bloqueio e o encaminhamento são simulados; nenhuma equipe real foi acionada. Você não precisa repetir o que já contou.'
+              : 'Atualizei o contexto deste protocolo. Você não precisa repetir o que já contou.',
+            refs,
+            { ticket: existing.id, action: kind === 'fraud' ? 'fraud' : null },
+          );
+          renderAgent();
+          return;
+        }
+        let id = 'CQ-' + currentClientId + '-' + String(state.sequence++).padStart(4, '0');
+        let urgent = kind === 'fraud';
+        let t = {
+          id,
+          clientId: currentClientId,
+          clientName: current().nome,
+          kind,
+          reason,
+          priority: urgent
+            ? 'Segurança 24h'
+            : kind === 'vulnerable' || current().idade >= 60
+              ? 'Prioritário'
+              : 'Normal',
+          status: urgent ? 'Segurança · simulado' : 'Aguardando · simulado',
+          messages: state.messages.map((m) => ({ ...m })),
+          revision: 1,
+          copilotVersion: 0,
+          created: stamp(),
+          updated: stamp(),
+          refs,
+        };
+        state.tickets.unshift(t);
+        state.activeTicket = id;
+        state.selected = id;
+        let persisted = save();
+        let schedule = urgent
+          ? 'Segurança 24h, sem fila — encaminhamento e bloqueio apenas simulados.'
+          : businessOpen()
+            ? 'Estamos na janela de atendimento humano (8h–20h). Fila e atendimento são simulados; não há estimativa real de espera disponível.'
+            : 'Agora estamos fora do horário humano. Retorno previsto a partir das 8h; demandas não urgentes têm prazo de até 7 dias corridos.';
+        let text = `${persisted ? 'Protocolo salvo neste navegador' : 'Não foi possível salvar de forma persistente; protocolo disponível apenas nesta sessão'}: ${id}.\n\n${reason}\n\n${schedule}${!urgent && businessOpen() ? ' Demandas não urgentes: até 7 dias corridos.' : ''}\n\nO histórico sanitizado acompanha o protocolo. Nenhuma pessoa real foi acionada.`;
+        addMessage('assistant', text, refs, { ticket: id, action: urgent ? 'fraud' : null });
+        renderAgent();
+      }
+      const productLabel = (p) =>
+        ({
+          'CDB-LD-100': 'CDB Caqui Liquidez Diária 100',
+          'CDB-LD-110': 'CDB Caqui Liquidez Diária 110',
+          'FUNDO-RF-01': 'Caqui Renda Fixa FIF',
+          'FUNDO-MM-01': 'Caqui Multimercado FIF',
+          'LCI-90D-92': 'LCI Caqui 92',
+          ACOES: 'Ações',
+        })[p] ||
+        p ||
+        'Transferência de entrada';
+      const statusLabel = (s) =>
+        ({
+          liquidada: 'Liquidada',
+          pendente: 'Pendente',
+          em_processamento: 'Em processamento',
+          recusada: 'Recusada',
+        })[s] || s;
+      function operation(requested) {
+        let op = requested
+          ? ownOperations().find((o) => o.id_operacao === requested)
+          : ownOperations().find((o) => o.tipo === 'resgate') || ownOperations()[0];
+        if (!op) {
+          handoff(
+            'missing',
+            'Não encontrei essa operação nos registros desta persona. Não vou consultar dados de outra pessoa.',
+            ['KB-008', 'KB-025'],
+          );
+          return;
+        }
+        let msg = `Conferi ${op.id_operacao}: ${money(op.valor_brl)} · ${productLabel(op.produto)}.\nPedido registrado em ${nice(op.pedido_em.slice(0, 10))}, às ${op.pedido_em.slice(11, 16)} (Brasília).\n\nStatus registrado: ${statusLabel(op.status)}.`;
+        if (op.status === 'liquidada') {
+          msg += ' O status é o que consta no CSV; não foi inferido a partir de uma data.';
+          addMessage('assistant', msg, ['record:operacoes.csv · ' + op.id_operacao, 'KB-008']);
+          return;
+        }
+        if (op.status === 'recusada') {
+          msg += ' Nenhuma operação foi executada nesta demo.';
+          if (op.observacao) msg += ' Motivo do registro: ' + op.observacao;
+          addMessage('assistant', msg, ['record:operacoes.csv · ' + op.id_operacao, 'KB-008']);
+          return;
+        }
+        let prediction = op.liquidacao_prevista;
+        let f = R.forecast(op.produto, op.pedido_em, D.calendar);
+        if (prediction) {
+          msg += '\n\nPrevisão do próprio registro: ' + nice(prediction) + '.';
+          if (f && f.payment !== prediction) {
+            addMessage('assistant', msg, ['record:operacoes.csv · ' + op.id_operacao]);
+            handoff(
+              'missing',
+              'Há conflito entre previsão registrada e regra calculada. É necessário conferir a operação.',
+              ['KB-006', 'KB-008'],
+            );
+            return;
+          }
+        } else if (f) {
+          prediction = f.payment;
+          msg += `\n\nA previsão está vazia no CSV. Cálculo determinístico: dia-base ${nice(f.base)}${f.quote ? ', cotização ' + nice(f.quote) : ''}, previsão de pagamento ${nice(f.payment)}. Corte às 16h inclusive e calendário da Caqui.`;
+        } else {
+          addMessage('assistant', msg, ['record:operacoes.csv · ' + op.id_operacao]);
+          handoff(
+            'missing',
+            'A previsão não consta do registro e não há cálculo validado para esta operação nesta demo. Não vou inventar um prazo.',
+            ['KB-006', 'KB-008'],
+          );
+          return;
+        }
+        msg += '\n\nPrevisão não confirma liquidação. Não realizamos nenhuma movimentação.';
+        addMessage('assistant', msg, ['record:operacoes.csv · ' + op.id_operacao, 'KB-006', 'KB-008']);
+        if ($('#demo-clock').value.slice(0, 10) > prediction)
+          handoff(
+            'delay',
+            'A previsão passou, mas o registro não confirma liquidação. Atendimento deve conferir a divergência.',
+            ['KB-006', 'KB-008'],
+          );
+      }
+      function send(input, forced) {
+        if (sessionRole !== 'client') return;
+        input = input.trim();
+        if (!input) return;
+        let kind = forced || R.route(input);
+        const requestedId = input.match(/OP-\d+/i)?.[0]?.toUpperCase();
+        if (requestedId) kind = 'operation';
+        if (/eu apliquei|dinheiro est[aá] l[aá]/i.test(input)) kind = 'application';
+        if (/heran[cç]a|me diz o que fazer/i.test(input)) kind = 'advice';
+        if (/outro cliente|C-\d{4}/i.test(input) && !input.includes(currentClientId)) kind = 'injection';
+        const safety = R.route(input);
+        if (safety === 'fraud' || safety === 'vulnerable' || safety === 'injection') kind = safety;
+        if (current().idade >= 60 && kind === 'advice') kind = 'vulnerable';
+        addMessage('user', input);
+        $('#client-input').value = '';
+        state.steps++;
+        if (kind === 'fraud') {
+          addMessage(
+            'assistant',
+            'Pare de compartilhar informações. A Caqui nunca pede senha, código, Pix de teste ou instalação de acesso remoto. Não envie nenhum código aqui. No app real, use Segurança > Bloquear acesso e contate a segurança imediatamente. Se já informou um código ou transferiu, avise a equipe de segurança.',
+            ['KB-019', 'KB-020'],
+            { action: 'fraud' },
+          );
+          handoff(
+            kind,
+            'Suspeita de golpe identificada. Prioridade imediata de segurança, independentemente do horário.',
+            ['KB-019', 'KB-020'],
+          );
+          return;
+        }
+        if (state.activeTicket) {
+          if (kind === 'vulnerable' || kind === 'complaint' || kind === 'close' || kind === 'advice')
+            handoff(kind, reasons[kind], kind === 'advice' ? ['KB-029'] : ['KB-025', 'KB-027', 'KB-028']);
+          else
+            addMessage(
+              'assistant',
+              'Sua nova mensagem foi incluída no protocolo. O atendente verá este contexto; o copiloto precisa ser atualizado antes de uma nova resposta.',
+              [],
+              { ticket: state.activeTicket },
+            );
+          renderAgent();
+          return;
+        }
+        if (kind === 'advice') {
+          investmentConversation(input);
+          return;
+        }
+        if (kind === 'education') {
+          addMessage(
+            'assistant',
+            'Claro. Podemos começar sem escolher um investimento por você.\n\nCDB: você empresta ao banco e recebe juros. Alguns permitem resgate em dias úteis; outros só no vencimento.\nLCI e LCA: são isentas de IR para pessoa física neste case, mas podem ter carência ou vencimento.\nFundos: reúnem recursos de vários investidores; têm taxas e prazos próprios, e as cotas podem oscilar.\n\nPara decidir, importam seu perfil, o risco que aceita e quando precisará do dinheiro. Quer entender primeiro liquidez, risco ou impostos?',
+            ['KB-003', 'KB-011', 'KB-014', 'KB-029'],
+          );
+          return;
+        }
+        if (kind === 'specialist') {
+          handoff(
+            'advice',
+            'Você escolheu conversar com um especialista. O objetivo e o valor que você informou seguem no histórico; nenhum agendamento real foi feito.',
+            ['KB-029', 'KB-025'],
+          );
+          return;
+        }
+        if (reasons[kind]) {
+          handoff(
+            kind,
+            reasons[kind],
+            kind === 'advice'
+              ? ['KB-029']
+              : kind === 'vulnerable'
+                ? ['KB-028', 'KB-025']
+                : kind === 'close' || kind === 'complaint'
+                  ? ['KB-027', 'KB-025']
+                  : ['KB-025', 'KB-026'],
+          );
+          return;
+        }
+        if (kind === 'operation') {
+          operation(requestedId);
+          return;
+        }
+        if (kind === 'balance') {
+          addMessage(
+            'assistant',
+            `O saldo em conta de ${current().nome} (${currentClientId}) é ${money(current().saldo_em_conta_brl)} no retrato sintético do case. Não inclui posições investidas e não é atualizado em tempo real.`,
+            ['record:clientes.json · ' + currentClientId],
+          );
+          return;
+        }
+        if (kind === 'application') {
+          let op = ownOperations().find((o) => o.tipo === 'aplicacao');
+          if (op) operation(op.id_operacao);
+          else
+            handoff(
+              'missing',
+              'Não encontrei uma aplicação nos registros desta persona. Não vou usar dados de outra conta.',
+            );
+          return;
+        }
+        if (kind === 'injection') {
+          addMessage(
+            'assistant',
+            'Não posso ignorar as regras, revelar instruções internas ou consultar dados de outra pessoa. Esta sessão usa somente os registros sintéticos de ' +
+              current().nome +
+              '.',
+            ['KB-019'],
+          );
+          return;
+        }
+        if (state.steps >= 5) {
+          handoff(
+            'limit',
+            'Chegamos ao limite de cinco passos. Para não repetir respostas, sua conversa segue com o atendimento.',
+          );
+          return;
+        }
+        if (FAQ[kind]) {
+          state.unknown = 0;
+          addMessage('assistant', ...FAQ[kind]);
+          return;
+        }
+        state.unknown++;
+        if (state.unknown >= 2) {
+          handoff(
+            'unknown',
+            'Não consegui entender em duas tentativas. Vou preservar sua mensagem e levar o contexto ao atendimento.',
+          );
+          return;
+        }
+        addMessage(
+          'assistant',
+          'Ainda não tenho uma resposta segura para essa pergunta. Posso ajudar com resgates, produtos, rentabilidade, impostos, documentos, acesso ou cadastro. Você também pode pedir uma pessoa, sem repetir a demanda.',
+        );
+        save();
+      }
+      function investmentConversation(input) {
+        state.adviceOffers = (state.adviceOffers || 0) + 1;
+        if (state.steps >= 5) {
+          handoff(
+            'advice',
+            'Para não repetir orientações e prolongar a conversa, seu pedido segue com contexto para o especialista. Nenhum agendamento real foi feito.',
+            ['KB-029', 'KB-025'],
+          );
+          return;
+        }
+        const amount = input.match(
+          /R\$\s*[\d.,]+(?:\s*(?:mil|milh[oõ]es|milh[aã]o))?|\b\d+(?:[.,]\d+)?\s+(?:mil|milh[oõ]es|milh[aã]o)\b/i,
+        )?.[0];
+        const goal = /aposent/i.test(input)
+          ? 'pensando na aposentadoria'
+          : /reserva|emerg[eê]ncia/i.test(input)
+            ? 'para formar uma reserva'
+            : /casa|im[oó]vel/i.test(input)
+              ? 'pensando em um imóvel'
+              : /viagem/i.test(input)
+                ? 'para uma viagem'
+                : '';
+        const opening =
+          state.adviceOffers > 1
+            ? 'Entendo que você queira uma resposta mais direta. Não vou escolher um produto por você sem uma avaliação adequada.'
+            : `Entendi, ${firstName()}. Você quer decidir o que fazer ${amount ? 'com ' + amount : 'com seu dinheiro'}${goal ? ' ' + goal : ''}.`;
+        addMessage(
+          'assistant',
+          opening +
+            '\n\nPara indicar um investimento, o especialista precisa avaliar seu perfil, seus objetivos e quando pretende usar esse dinheiro. Eu sou o assistente virtual desta demonstração: posso explicar as diferenças entre os produtos ou encaminhar sua pergunta com o contexto que você já trouxe.\n\nO que prefere? O encaminhamento e o agendamento aqui são apenas simulados.',
+          ['KB-029'],
+          { action: 'advice' },
+        );
+      }
+      const reasons = {
+        human: 'Você pediu uma pessoa. Seguimos sem tentativa de retenção e com o contexto já registrado.',
+        missing:
+          'Não há dados suficientes para confirmar esta operação. O atendimento precisa conferir o registro; não inventamos data, saldo ou resultado.',
+        complaint:
+          'Reclamação registrada sem barreira de retenção. O motivo informado acompanha o histórico.',
+        close:
+          'Pedido de encerramento registrado, sem retenção. Investimentos precisam ser resgatados e o saldo transferido; produtos sem liquidez seguem até o vencimento. Nenhuma conta foi encerrada nesta demo.',
+        vulnerable:
+          'Sinal de vulnerabilidade identificado. Atendimento prioritário, com linguagem simples e verificação cuidadosa da situação.',
+        advice:
+          'Orientação personalizada precisa de especialista em investimentos, com agendamento. O assistente não indica produto, percentual ou melhor opção.',
+      };
+      function switchView(view) {
+        if ((view === 'client' && sessionRole !== 'client') || (view === 'agent' && sessionRole !== 'agent'))
+          return;
+        state.view = view;
+        $('#client-view').hidden = view !== 'client';
+        $('#agent-view').hidden = view !== 'agent';
+        $('#view-label').textContent = view === 'client' ? 'Experiência do cliente' : 'Mesa de atendimento';
+        $('#page-title').textContent =
+          view === 'client' ? 'Como podemos ajudar?' : 'Uma conversa. Todo o contexto.';
+        $('#page-description').textContent =
+          view === 'client'
+            ? 'Respostas claras. Seu contexto sempre junto.'
+            : 'Menos repetição, mais cuidado em cada atendimento.';
+        $('.page-heading .eyebrow').textContent =
+          view === 'client' ? 'OLÁ, ' + firstName().toUpperCase() : 'ESPAÇO DO ATENDENTE · JONAS';
+        if (view === 'agent') {
+          if (state.selected) {
+            let t = state.tickets.find((x) => x.id === state.selected);
+            if (t && !t.copilot) generate(t);
+          }
+          renderAgent();
+        }
+      }
+      function generate(t) {
+        let userMessages = t.messages.filter((x) => x.role === 'user');
+        let latest = userMessages.at(-1)?.text || t.reason;
+        let original = userMessages[0]?.text || t.reason;
+        let internal = [];
+        let draft = '';
+        let pending = 'Conferir o registro ou a necessidade antes de prometer um resultado.';
+        let next = 'Consultar os dados autorizados e responder somente o que foi confirmado.';
+        if (t.kind === 'fraud') {
+          internal = ['KB-019', 'KB-020'];
+          draft =
+            firstName() +
+            ', entendi a suspeita de golpe e li o histórico. Não compartilhe senha nem código. No app, vá a Segurança > Bloquear acesso. A equipe de segurança atende 24 horas, sem fila. Este é um envio simulado: nenhum bloqueio ou atendimento real foi acionado.';
+          pending =
+            'Confirmar apenas se houve compartilhamento ou transferência, caso isso ainda não esteja no histórico. Nunca pedir o código.';
+          next = 'Priorizar segurança. Bloqueio e encaminhamento imediatos apenas simulados.';
+        } else if (t.kind === 'close') {
+          internal = ['KB-027'];
+          draft =
+            firstName() +
+            ', recebi seu pedido de encerramento e não vou pedir que repita o motivo. Precisamos conferir os investimentos e o saldo: produtos sem liquidez permanecem até o vencimento. Aqui o encerramento é apenas uma solicitação simulada, não uma execução.';
+          next = 'Conferir pendências antes de orientar encerramento, sem retenção.';
+        } else if (t.kind === 'advice') {
+          internal = ['KB-029'];
+          draft =
+            firstName() +
+            ', vou levar seu pedido ao especialista, que poderá considerar seu perfil e objetivos com agendamento. Não vou indicar um investimento por aqui. Nenhum agendamento real foi feito nesta demonstração.';
+          next = 'Encaminhar para agendamento com especialista; não recomendar.';
+        } else {
+          internal =
+            t.kind === 'vulnerable' ? ['KB-028', 'KB-025'] : ['KB-006', 'KB-008', 'KB-025', 'KB-026'];
+          draft = `${firstName()}, li o que você já contou e vou continuar a partir desse ponto. ${t.kind === 'missing' ? 'Ainda faltam dados para confirmar a operação e não vou inventar uma data.' : t.kind === 'delay' ? 'A previsão passou, mas o registro ainda não confirma a liquidação.' : t.kind === 'vulnerable' ? 'Seu atendimento recebe prioridade e vamos seguir com calma.' : 'Vou verificar sua solicitação com as informações disponíveis.'} O protocolo ${t.id} preserva o histórico. Este atendimento e este envio são simulados.`;
+        }
+        t.copilotVersion++;
+        t.copilotRevision = t.revision;
+        t.copilotAt = stamp();
+        t.copilot = {
+          summary: `${original}${latest !== original ? '\nÚltima mensagem: ' + latest : ''}`,
+          facts: [
+            `Cliente sintético: ${current().nome} · ${currentClientId} · CPF ${current().cpf_mascarado}.`,
+            `Motivo: ${t.reason}`,
+            `Prioridade: ${t.priority}. Atendimento e integração simulados.`,
+          ],
+          attempts:
+            (t.messages
+              .filter((x) => x.role === 'assistant' && x.refs?.length && !x.ticket)
+              .map((x) => x.text.slice(0, 150))
+              .slice(-2)
+              .join(' / ') || 'Registro da demanda e encaminhamento com o histórico completo.') +
+            ' Não pedir novamente o que já foi informado.',
+          pending,
+          next,
+          draft,
+          refs: internal,
+        };
+        save();
+      }
+      function renderAgent() {
+        if (sessionRole !== 'agent') return;
+        let selected = state.tickets.find((x) => x.id === state.selected);
+        $('#ticket-list').innerHTML = allTickets().length
+          ? allTickets()
+              .map(
+                (t) =>
+                  `<button class="ticket-item ${t.id === state.selected ? 'active' : ''}" data-ticket="${t.id}"><span class="row"><span>${t.id}</span><span class="tag ${t.kind === 'fraud' ? 'danger' : t.kind === 'vulnerable' ? 'amber' : 'soft'}">${esc(t.priority)}</span></span><strong>${esc(t.clientName)}</strong><small>${esc(t.reason.slice(0, 95))}</small><small style="margin-top:8px">${esc(t.status)}</small></button>`,
+              )
+              .join('')
+          : '<div class="empty-state"><span>▤</span><h3>Nenhum protocolo ainda</h3><p>Entre como cliente e use um exemplo para gerar um protocolo.</p></div>';
+        $('#queue-total').textContent = allTickets().length;
+        $('#new-message').disabled = !selected;
+        if (!selected) {
+          $('#ticket-heading').innerHTML = '<h2>Selecione um atendimento</h2>';
+          $('#copilot-content').innerHTML =
+            '<div class="empty-state"><span>✳</span><h3>O contexto vem junto.</h3><p>Entre como cliente para criar um caso neste navegador.</p></div>';
+          $('#agent-chat').innerHTML =
+            '<div class="empty-state"><span>◇</span><h3>Sem repetir a história.</h3><p>O protocolo traz a conversa completa para cá.</p></div>';
+          bindDynamic();
+          return;
+        }
+        $('#ticket-heading').innerHTML =
+          `<h2>${esc(current().nome)} <span class="tag soft">${currentClientId}</span></h2><p>${selected.id} · ${esc(selected.priority)}<br>CPF ${esc(current().cpf_mascarado)} · histórico sanitizado</p>`;
+        $('#agent-chat').innerHTML = selected.messages.map(messageHTML).join('');
+        $('#agent-chat').scrollTop = $('#agent-chat').scrollHeight;
+        if (selected.copilot) renderCopilot(selected);
+        bindDynamic();
+      }
+      function renderCopilot(t) {
+        let c = t.copilot,
+          stale = t.copilotRevision !== t.revision;
+        $('#copilot-content').innerHTML =
+          `<div class="copilot-meta"><span class="tag ${stale ? 'amber' : 'success'}">${stale ? 'Desatualizado' : 'Contexto atualizado'} · v${t.copilotVersion}</span><button id="regenerate">↻ Atualizar</button></div>${stale ? '<div class="copilot-alert">Chegou uma nova mensagem. Atualize o resumo antes de revisar e enviar.</div>' : ''}<p class="status-line">Gerado ${esc(t.copilotAt)} · conteúdo interno</p><section class="insight"><h3>Resumo da demanda</h3><p>${esc(c.summary)}</p></section><section class="insight"><h3>Fatos conferidos</h3><ul>${c.facts.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></section><section class="insight"><h3>O que já foi tentado</h3><p>${esc(c.attempts)}</p></section><section class="insight"><h3>Pendente de confirmação</h3><p>${esc(c.pending)}</p></section><section class="insight"><h3>Próximo passo</h3><p>${esc(c.next)}</p></section><div class="source-row">${sourceHTML(c.refs)}</div><label class="draft-label" for="draft">Rascunho para o cliente</label><textarea class="draft" id="draft" maxlength="2000">${esc(c.draft)}</textarea><label class="review-check"><input type="checkbox" id="review" ${stale ? 'disabled' : ''}> Revisei o texto, os fatos e as fontes. Apenas esta resposta será enviada.</label><button id="approve" class="primary-button" disabled>Revisar e enviar · simulação</button><details class="followup"><summary>Perguntar ao copiloto</summary><form id="followup-form"><input id="followup-input" maxlength="500" placeholder="Ex.: o que falta confirmar?" aria-label="Pergunta interna ao copiloto"><button>Perguntar</button></form><p id="followup-answer" role="status"></p></details>`;
+        $('#regenerate').onclick = () => {
+          generate(t);
+          renderCopilot(t);
+          toast('Contexto atualizado. Revise o novo rascunho.');
+        };
+        $('#review').onchange = () => {
+          $('#approve').disabled = !$('#review').checked || !$('#draft').value.trim() || stale;
+        };
+        $('#draft').oninput = () => {
+          $('#review').checked = false;
+          $('#approve').disabled = true;
+        };
+        $('#approve').onclick = () => {
+          if (sessionRole !== 'agent' || !$('#review').checked || t.copilotRevision !== t.revision) return;
+          let m = { role: 'human', text: R.sanitize($('#draft').value), refs: [], time: stamp() };
+          t.messages.push(m);
+          t.revision++;
+          t.status = 'Respondido · simulado';
+          if (state.activeTicket === t.id) state.messages.push({ ...m });
+          save();
+          renderClient();
+          renderAgent();
+          toast('Resposta aprovada adicionada à conversa. Nenhuma mensagem externa enviada.');
+        };
+        $('#followup-form').onsubmit = (e) => {
+          e.preventDefault();
+          $('#followup-answer').textContent =
+            'Resposta interna estruturada: ' +
+            c.pending +
+            ' ' +
+            c.next +
+            ' O histórico existente deve ser consultado antes de repetir perguntas. Nenhuma informação adicional foi buscada.';
+        };
+      }
+      function bindDynamic() {
+        $$('[data-advice-education]').forEach(
+          (b) => (b.onclick = () => send('Quero entender as diferenças entre os produtos.', 'education')),
+        );
+        $$('[data-advice-human]').forEach(
+          (b) =>
+            (b.onclick = () => send('Quero falar com um especialista sobre o que já contei.', 'specialist')),
+        );
+        $$('[data-ticket]').forEach(
+          (b) =>
+            (b.onclick = () => {
+              let target = allTickets().find((t) => t.id === b.dataset.ticket);
+              if (!target) return;
+              currentClientId = target.clientId;
+              state = profiles[currentClientId];
+              state.selected = target.id;
+              generate(target);
+              renderAgent();
+            }),
+        );
+        $$('[data-block]').forEach(
+          (b) =>
+            (b.onclick = () => {
+              toast('Bloqueio simulado. Nenhuma sessão bancária foi alterada.');
+              b.textContent = 'Bloqueio simulado ✓';
+              b.disabled = true;
+            }),
+        );
+      }
+      $('#client-form').onsubmit = (e) => {
+        e.preventDefault();
+        send($('#client-input').value);
+      };
+      $$('[data-prompt]').forEach((b) => (b.onclick = () => send(b.dataset.prompt)));
+      $$('[data-route]').forEach(
+        (b) =>
+          (b.onclick = () =>
+            send(
+              b.dataset.route === 'complaint' ? 'Quero fazer uma reclamação.' : 'Quero encerrar minha conta.',
+              b.dataset.route,
+            )),
+      );
+      $('#human-btn').onclick = () => send('Quero falar com uma pessoa.', 'human');
+      $('#missing-scenario').onclick = () =>
+        send('Não encontrei o registro da operação que quero consultar.', 'missing');
+      $('#fraud-scenario').onclick = () =>
+        send('Um gerente me ligou pedindo o código do SMS. Posso passar?', 'fraud');
+      $('#vulnerable-scenario').onclick = () =>
+        send('Estou confusa. Meu sobrinho mandou resgatar tudo e preciso de ajuda.', 'vulnerable');
+      $('#new-message').onclick = () => {
+        let t = state.tickets.find((x) => x.id === state.selected);
+        if (!t) return;
+        let m = {
+          role: 'user',
+          text: 'Já conferi o aplicativo e continuo com a dúvida. Não quero repetir tudo de novo.',
+          refs: [],
+          time: stamp(),
+        };
+        t.messages.push(m);
+        t.revision++;
+        if (state.activeTicket === t.id) state.messages.push({ ...m });
+        save();
+        renderClient();
+        renderAgent();
+        toast('Nova mensagem recebida. Copiloto marcado como desatualizado.');
+      };
+      $('#demo-clock').onchange = () => {
+        $('#hours').textContent = businessOpen()
+          ? 'Humano: 8h–20h · segurança: 24h'
+          : 'Fora do horário humano · segurança: 24h';
+        toast('Relógio alterado. Dados da conta continuam sendo o retrato sintético do case.');
+      };
+      $('#about-open').onclick = () => $('#about-dialog').showModal();
+      $$('.close-dialog').forEach((b) => (b.onclick = () => $('#about-dialog').close()));
+      $('#reset').onclick = () => {
+        if (!confirm('Apagar apenas os protocolos e a conversa da persona atual desta demonstração?')) return;
+        profiles[currentClientId] = freshState();
+        state = profiles[currentClientId];
+        save();
+        if (sessionRole === 'client') startClient();
+        else renderAgent();
+        toast('Dados desta persona reiniciados. Os outros perfis foram preservados.');
+      };
+      function renderIdentity() {
+        const c = current();
+        $('#session-name').textContent = sessionRole === 'agent' ? 'Jonas · atendente' : c.nome;
+        $('#session-id').textContent =
+          sessionRole === 'agent' ? 'Acesso demonstrativo' : 'Conta sintética · ' + c.id;
+        $('#session-avatar').textContent =
+          sessionRole === 'agent'
+            ? 'JO'
+            : c.nome
+                .split(' ')
+                .slice(0, 2)
+                .map((x) => x[0])
+                .join('');
+        $('#session-nav-label').textContent =
+          sessionRole === 'agent' ? 'Mesa de atendimento' : 'Meu atendimento';
+        $('.balance').textContent = money(c.saldo_em_conta_brl);
+        $('.account-id').textContent = c.nome + ' · CPF ' + c.cpf_mascarado;
+        $('.account-source').textContent = 'Fonte: clientes.json · ' + c.id;
+        const ops = ownOperations();
+        $('.operations').innerHTML =
+          '<div class="row"><h2>Movimentações desta conta</h2><span class="tag soft">Leitura</span></div>' +
+          ops
+            .map(
+              (o) =>
+                `<button class="operation" data-op="${o.id_operacao}"><span class="operation-icon">${o.tipo === 'resgate' ? '↙' : '↗'}</span><div><strong>${esc(productLabel(o.produto))}</strong><small>${esc(o.tipo.replaceAll('_', ' '))} · ${o.id_operacao}</small><b>${money(o.valor_brl)}</b><span class="tag ${o.status === 'liquidada' ? 'success' : 'amber'}">${esc(statusLabel(o.status))}</span></div><span>›</span></button>`,
+            )
+            .join('') +
+          '<small class="source-note">Fonte: operacoes.csv · somente ' +
+          c.id +
+          '. Previsão não altera status.</small>';
+        $$('[data-op]').forEach(
+          (b) => (b.onclick = () => send('Quero consultar a operação ' + b.dataset.op + '.', 'operation')),
+        );
+        let persona = D.personas.find((p) => p.id === c.id);
+        $('#persona-test-note').textContent =
+          'Falas do cliente extraídas dos dados. Respostas históricas não são reutilizadas.';
+        $('#persona-examples').innerHTML = persona.examples
+          .map(
+            (e, i) => `<button data-example="${i}">${esc(e.title)}<small>${esc(e.source)}</small></button>`,
+          )
+          .join('');
+        $$('[data-example]').forEach(
+          (b) =>
+            (b.onclick = () => {
+              let ex = persona.examples[Number(b.dataset.example)];
+              send(ex.question);
+            }),
+        );
+      }
+      function welcome() {
+        addMessage(
+          'assistant',
+          `Olá, ${firstName()}! Sou o assistente da Caqui. Esta sessão usa apenas os registros sintéticos de ${current().nome} (${currentClientId}).\n\nPosso explicar produtos, consultar registros ou levar sua demanda a uma pessoa. Selecione um exemplo acima ou conte o que precisa.`,
+        );
+      }
+      function startClient() {
+        renderIdentity();
+        if (!state.messages.length) welcome();
+        else renderClient();
+        switchView('client');
+      }
+      function login(role) {
+        sessionRole = role;
+        $('#login-screen').hidden = true;
+        $('.sidebar').hidden = false;
+        $('.shell').hidden = false;
+        if (role === 'client') {
+          currentClientId = $('#persona-select').value;
+          state = profiles[currentClientId];
+          startClient();
+        } else {
+          let first = allTickets()[0];
+          currentClientId = first?.clientId || 'C-0007';
+          state = profiles[currentClientId];
+          state.selected = first?.id || null;
+          renderIdentity();
+          switchView('agent');
+        }
+        window.scrollTo(0, 0);
+      }
+      function logout() {
+        save();
+        clearTimeout(window.toastTimer);
+        $('#toast').classList.remove('visible');
+        $('#toast').textContent = '';
+        sessionRole = null;
+        $('#client-view').hidden = true;
+        $('#agent-view').hidden = true;
+        $('.sidebar').hidden = true;
+        $('.shell').hidden = true;
+        $('#login-screen').hidden = false;
+        $('#client-chat').innerHTML = '';
+        $('#agent-chat').innerHTML = '';
+        $('#ticket-list').innerHTML = '';
+        $('#copilot-content').innerHTML = '';
+        $('#persona-select').focus();
+        window.scrollTo(0, 0);
+      }
+      $('#persona-select').innerHTML = D.personas
+        .map((p) => `<option value="${p.id}">${esc(p.label)} · ${p.id}</option>`)
+        .join('');
+      $('#persona-select').onchange = () => {
+        $('#persona-description').textContent = D.personas.find(
+          (p) => p.id === $('#persona-select').value,
+        ).description;
+      };
+      $('#persona-select').onchange();
+      $('#login-client').onclick = () => login('client');
+      $('#login-agent').onclick = () => login('agent');
+      $('#logout').onclick = logout;
+      $('#session-nav').onclick = () => switchView(sessionRole);
+    </script>
+  </body>
+</html>

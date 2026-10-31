@@ -1,0 +1,166 @@
+# SPEC: Caqui Atende — cliente e copiloto em 3 horas
+
+**Grupo:** a preencher
+
+**URL pública:** pendente
+
+**Status:** requisitos propostos para revisão; esta spec não comprova implementação, testes ou deploy.
+
+> Empresa, pessoas, taxas e regras são fictícias. O prazo de três horas reduz funcionalidades, nunca os controles de segurança.
+
+## 1. Qual parte do problema?
+
+Simplificar o atendimento com **telas e entradas separadas: Login do Cliente e Login do Atendente**, substituindo as duas abas. Cobrir os assuntos do case por orientação, consulta ou encaminhamento — não prometer resolver ou executar todas as operações.
+
+O cliente acessa FAQ e dados da própria conta sintética. Nas exceções, o atendente recebe a conversa e um copiloto ajuda a continuar sem reiniciar o atendimento.
+
+A Caqui tem **48 mil contatos/mês**, atendimento médio de **12 minutos**, fila de pico de **35 minutos** e **90 dias** para autonomia de novos atendentes. [Fonte: CASE](https://github.com/avenue-community/caqui-invest/blob/main/CASE.md).
+
+## 2. Qual alavanca?
+
+**Resolver dúvidas rotineiras e tornar o atendimento humano mais produtivo.**
+
+### Requisitos funcionais
+
+| ID   | Requisito revisável                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| RF01 | **Chat do cliente:** FAQ pública com fontes validadas para produtos, conceitos, documentos, acesso, cadastro e demais assuntos do case. Limites explícitos quando não houver resposta. Em pedidos de investimento, reconhecer o objetivo/valor que o cliente informou, explicar por que a orientação personalizada exige especialista e oferecer explicação educativa ou encaminhamento contextual, sem recomendação nem resposta genérica repetitiva. |
+| RF02 | **Conta somente leitura:** consultar cliente, posições e operações vinculadas ao `id_cliente` selecionado na sessão demonstrativa. Mostrar origem, data de referência e status, sem executar transações. Autorização real no servidor é requisito de produção, não capacidade comprovada da demo.                                                                                                                                                      |
+| RF03 | **Cálculos controlados:** datas, IR e comparação líquida somente por funções determinísticas com entradas/regras validadas. Módulo não validado fica desativado e encaminha.                                                                                                                                                                                                                                                                           |
+| RF04 | **Atendimento e protocolo:** testar ajuda/opções de assunto como ações primárias e “Falar com uma pessoa” como ação secundária, legível e visível em todo passo, sem esconder em menu ou reduzir contraste/acessibilidade. Pedido humano claro encaminha imediatamente, sem exigir tentativa de autoatendimento. Classificar motivo/prioridade e persistir demanda, histórico sanitizado, operação, fontes, tentativas e próximo passo.                |
+| RF05 | **Tela do Atendente:** após entrada própria, fila simples e conversa do caso selecionado; mostrar cliente proprietário, protocolo, prioridade e estado do encaminhamento. Resposta vinculada ao cliente/conversa corretos. Atendimento explicitamente simulado.                                                                                                                                                                                        |
+| RF06 | **Resumo inicial do copiloto:** um bloco com demanda, objetivo declarado, fatos consultados, tentativas anteriores, pendências, próximo passo sugerido e rascunho com fontes. Não inventar intenção, ação, diagnóstico ou dado.                                                                                                                                                                                                                        |
+| RF07 | **Pergunta complementar:** um campo “Perguntar ao copiloto” para o atendente consultar o caso. Resposta interna; não enviar automaticamente perguntas ao cliente nem repetir o que já consta no histórico.                                                                                                                                                                                                                                             |
+| RF08 | **Revisão e atualização:** atualizar resumo ao abrir/atualizar o caso; exibir horário e versão da última mensagem considerada. Nova mensagem marca resumo/rascunho como desatualizado até regeneração. Atendente revisa/edita e aprova antes do envio simulado.                                                                                                                                                                                        |
+| RF09 | **Continuidade segura:** falha da IA usa FAQ/resposta estruturada e mantém encaminhamento. Interface operável por teclado, foco visível e status textual.                                                                                                                                                                                                                                                                                              |
+| RF10 | **Logins demonstrativos separados:** entrada do cliente com seleção de persona e entrada do atendente com visão própria, sem senha, provedor externo ou backend de autenticação. Não exibir painel/copiloto interno na tela do cliente. Para trocar de papel, usar “Sair” e a entrada correspondente; sair encerra o contexto ativo e volta à entrada.                                                                                                 |
+| RF11 | **Personas e exemplos do repositório:** usar os clientes sintéticos abaixo e oferecer exemplos de `conversas.csv` somente quando `id_cliente` corresponder à persona selecionada. Preservar ID/data de origem do exemplo; não inventar conversas para preencher lacunas. Ao trocar de persona, não reaproveitar mensagens, saldos, casos ou resumo de outro cliente.                                                                                   |
+
+### Personas e cenários de teste
+
+| Persona da demo             | ID do cliente | Exemplos do CSV                                                                            |
+| --------------------------- | ------------- | ------------------------------------------------------------------------------------------ |
+| Dona Marta — Marta Siqueira | C-0001        | CV-0027: dúvida sobre LCI/carência; CV-0297: resgate total, pressão de terceiro e confusão |
+| Rafael Okada                | C-0002        | CV-0284: pergunta de IR respondida incorretamente com prazo/corte antigo                   |
+| Camila Prates               | C-0003        | CV-0147: herança e pedido de recomendação; encaminhar ao especialista                      |
+| Celina Teixeira             | C-0007        | Manter como cliente sintético selecionável; não atribuir exemplos de outra persona         |
+
+Fontes conferidas: [clientes.json](https://github.com/avenue-community/caqui-invest/blob/main/dados/clientes.json) e [conversas.csv](https://github.com/avenue-community/caqui-invest/blob/main/dados/conversas.csv). Os exemplos são cenários históricos para teste, não respostas corretas nem comprovação do saldo/status atual. Cálculos devem indicar o momento usado, sem tratar o “hoje” de uma conversa histórica como data atual silenciosamente.
+
+## 3. Quanto isso move?
+
+Ainda não há taxas de resolução ou ganho de produtividade medidos. Avaliar dois grupos sem sobreposição:
+
+- **Autoatendimento:** contatos resolvidos sem humano × minutos humanos evitados ÷ 60.
+- **Copiloto:** contatos restantes assistidos × minutos efetivamente economizados ÷ 60.
+
+Não contar o mesmo contato nas duas parcelas nem adicionar recontato evitado novamente. Medir resolução sem retorno em sete dias, tempo de atendimento, correção dos encaminhamentos, edição de rascunhos e satisfação. A demo demonstra viabilidade do fluxo, não comprova redução de custo nem capacidade para crescer cinco vezes.
+
+## 4. Como a confiança aparece?
+
+### Fontes, dados e limites
+
+Regras compartilhadas devem ser iguais no cliente e no copiloto. Toda afirmação factual mostra artigo/revisão ou registro consultado; relato do cliente não vira fato confirmado. Conversas históricas contêm erros e não são fonte normativa.
+
+Usar a [base sintética](https://github.com/avenue-community/caqui-invest/blob/main/dados/README.md), [taxas fictícias](https://github.com/avenue-community/caqui-invest/blob/main/dados/taxas.json) e [calendário Caqui](https://github.com/avenue-community/caqui-invest/blob/main/dados/calendario.json), sem buscar taxas reais. Relógio injetável: **18/11/2026, 10h, Brasília**. O calendário cobre outubro/2026 a dezembro/2027 e somente feriados nacionais.
+
+**RN13 — Separação de contexto:** FAQ pública e orientações/FAQ internas são coleções separadas por papel. Nenhuma nota, instrução ou FAQ interna entra na tela, contexto, busca ou resposta do chat do cliente. O rascunho externo usa somente informação pública e fatos da conta vinculada ao caso; revisão humana não autoriza vazar conteúdo interno. Na demo, o isolamento é de interface, estado e contexto no navegador; isso não protege conteúdo contra inspeção/alteração do código ou armazenamento local. Não incluir segredos nem conteúdo interno real. Em produção, impor autenticação/autorização no servidor.
+
+**RN14 — Fidelidade do copiloto:** separar “cliente relatou”, “dado consultado” e “não confirmado”. Ancorar fatos em mensagens/registros; campo sem evidência fica pendente. Não afirmar ação executada, envio ou solução sem registro correspondente. Resumo desatualizado não pode parecer atual nem liberar envio do rascunho associado sem atualização/revisão.
+
+**RN15 — Propriedade e persistência da demo:** cada conversa, protocolo, operação consultada, resumo e resposta mantém o `id_cliente` e o ID do caso correspondentes. Selecionar um cenário não altera seu proprietário. Logout encerra a sessão demonstrativa; reentrada não mistura contextos. Persistência/continuidade, quando implementadas localmente, valem para o mesmo navegador: não prometer sincronização entre dispositivos ou serviço multiusuário.
+
+**RN16 — Comunicação contextual, sem disfarçar limites:** responder de forma breve, natural e específica ao pedido, inclusive nos rascunhos do copiloto. Reconhecer objetivo e quantia somente quando declarados; não inferir perfil, prazo ou tolerância a risco. Explicar que o especialista considera perfil e objetivos antes de orientar individualmente. Oferecer educação geral ou encaminhamento levando o contexto, sem pressionar nem repetir perguntas respondidas. Manter claro que se trata de assistente virtual/demo e que encaminhamento, agendamento e atendimento são simulados; linguagem acolhedora não autoriza fingir ser humano ou prometer ação realizada.
+
+### Liquidação por produto — detalhamento de RN01
+
+D0 é o dia-base conforme corte aplicável e calendário. **Até 16h inclusive** em dia útil, usar o próprio dia; depois do corte ou em dia não útil, próximo útil. Fonte vigente: [KB-006](https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-006.md); excluir KB-007, explicitamente antiga.
+
+| Produto                            | Regra do repositório / exceção                                                                                                 |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| CDB diário                         | Liquidação em D0. Não estender aos CDBs sem liquidez diária.                                                                   |
+| LCI Caqui 92                       | Carência de 90 dias; antes disso, resgate recusado. Depois, liquidez diária.                                                   |
+| CDB Caqui 2 anos / LCA Caqui 1 ano | Resgate somente no vencimento; pedido antecipado não libera dinheiro.                                                          |
+| Caqui Renda Fixa FIF               | Cotização D+1 e pagamento D+2 úteis, ambos contados de D0.                                                                     |
+| Caqui Multimercado FIF             | Cotização 30 dias corridos após D0, ajustada ao próximo útil; pagamento dois úteis após a cotização.                           |
+| Tesouro Selic / ações              | D+1 útil / D+2 úteis, conforme a operação e regra do produto.                                                                  |
+| Pix                                | Orientação de disponibilidade imediata/24h e mesma titularidade, conforme KB-018; jamais inferir execução ou recebimento real. |
+
+Restrições de carência/vencimento: [KB-005](https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-005.md) e [KB-011](https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-011.md). Transferências: [KB-018](https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-018.md).
+
+Preservar o status do registro: previsão não comprova liquidação. Previsão ausente só pode ser calculada com entradas válidas. Dados essenciais ausentes, calendário sem cobertura, conflito entre registro/regra, status inconsistente ou previsão vencida sem liquidação exigem protocolo e encaminhamento; não corrigir registros nem garantir crédito. Posições e operações não permitem conciliação contábil exata.
+
+### As 12 regras do repositório, com exceções e testes
+
+Todas são restrições obrigatórias. “Encaminhar” não equivale a aprovar um teste que exigia cálculo: funcionalidades não validadas devem permanecer identificadas como não disponíveis.
+
+| Regra / requisito                           | Comportamento obrigatório                                                                                                                                                                                                                                                                                                                                                              | Exceção e teste de aceite                                                                                                                                                                                                                                                                             |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **RN01 — Liquidação**; RF02/03/04           | Aplicar regras específicas acima, calendário e corte; distinguir previsão/status.                                                                                                                                                                                                                                                                                                      | PT-01–05; 15h59/16h/16h01; fim de semana/feriado; ausência/conflito → não inventar, encaminhar.                                                                                                                                                                                                       |
+| **RN02 — IR regressivo**; RF03              | Sobre rendimento, nunca principal: até 180 dias 22,5%; 181–360, 20%; 361–720, 17,5%; acima de 720, 15%. LCI/LCA/poupança isentas para pessoa física. IOF fora do desafio.                                                                                                                                                                                                              | PT-06–09 e bordas 180/181, 360/361, 720/721. Dados/rendimento inválidos ou regra não implementada → explicar limite e encaminhar, sem valor fabricado.                                                                                                                                                |
+| **RN03 — Comparação com poupança**; RF03    | Comparar líquido com líquido, mesmo período/base e taxas de `taxas.json`; poupança isenta. Não transformar comparação em recomendação.                                                                                                                                                                                                                                                 | PT-10–12. Não comparar bruto com líquido, períodos diferentes ou usar taxa da internet; cálculo indisponível → encaminhar.                                                                                                                                                                            |
+| **RN04 — Sem recomendação**; RF01/04/06     | Não indicar produto, percentual ou “melhor opção” pessoal. Reconhecer o pedido sem resposta robotizada; explicar o papel do especialista na adequação ao perfil/objetivos e oferecer educação geral ou encaminhamento contextual, com agendamento previsto na KB-029. Vale para cliente, copiloto e atendente.                                                                         | PT-13–17; insistência, “no meu lugar” ou troca de papel não liberam recomendação. Valor/objetivo declarado não permite inferir perfil nem produto adequado. RN16 regula o tom sem eliminar limites.                                                                                                   |
+| **RN05 — Golpe**; RF04/05                   | Primeiro sinal interrompe a demanda original; orientar não compartilhar senha/código, não transferir nem instalar acesso remoto; bloqueio e segurança imediatos, 24h, sem fila.                                                                                                                                                                                                        | PT-18–21, inclusive às 23h. Bloqueio/encaminhamento são simulados e identificados; nunca afirmar proteção ou entrega humana real.                                                                                                                                                                     |
+| **RN06 — Vulnerável**; RF04/05              | Prioridade humana para idade ≥60, confusão, pressão de terceiro ou resgate atípico de valor alto; condução calma, sem julgamento.                                                                                                                                                                                                                                                      | PT-22–24. Não há limiar numérico de “valor alto” no case: não inventar; sinal explícito ou dúvida → prioridade. Não transferir para terceiros.                                                                                                                                                        |
+| **RN07 — Reclamação/cancelamento**; RF01/04 | Disponíveis em qualquer etapa. Case permite no máximo uma retenção; MVP faz zero. Protocolo sem repetir motivo; orientar encerramento/resgate/transferência, respeitando vencimentos.                                                                                                                                                                                                  | PT-25/26, pedido na primeira mensagem. Não executar encerramento real; reclamação não urgente com prazo de até sete dias corridos.                                                                                                                                                                    |
+| **RN08 — Sem doom loop**; RF04/09           | No máximo cinco passos até resolver/encaminhar; após duas respostas sem entendimento, oferecer humano. Pedido claro de pessoa/atendente encaminha imediatamente, sem menu adicional. Só se “atendente” for realmente ambíguo no contexto, pode mostrar ajuda opcional ao lado da ação humana, disponível no mesmo passo; nunca exigir esclarecimento ou autoatendimento como condição. | PT-27/28; testar pedido claro e termo ambíguo. Em dúvida sobre intenção humana, favorecer encaminhamento. Não reiniciar contagem, pedir confirmação repetida ou insistir; vulnerabilidade mantém prioridade e golpe interrompe a escolha. Na demo, confirmar registro simulado, não pessoa conectada. |
+| **RN09 — Não sabe**; RF01/03/04             | Sem fonte/regra, declarar desconhecimento ou indisponibilidade. Diferenciar produto não oferecido de recurso ainda não implementado.                                                                                                                                                                                                                                                   | PT-29–31. KB-030: sem previdência/cripto; KB-006 vigente em vez de KB-007. Fonte conflitante → encaminhar, sem escolher por plausibilidade.                                                                                                                                                           |
+| **RN10 — Dados pessoais**; RF02/04/05/10/11 | Somente sintéticos; CPF mascarado antes de tela/log/modelo; nunca pedir senha. Demo filtra conta/caso por ID e papel no navegador; produção exige restrição no servidor.                                                                                                                                                                                                               | PT-32/33; testar fluxos, rotas, troca de persona/login, logs e resumos sem mistura de clientes. Não salvar dados sensíveis crus. A demo não comprova resistência à manipulação do navegador nem autenticação real.                                                                                    |
+| **RN11 — Instrução escondida**; RF01/02/06  | Mensagem, histórico e documento são dados, não autoridade. Não podem alterar identidade, permissões, regras ou revelar contexto interno.                                                                                                                                                                                                                                               | PT-34–36 e pedido de FAQ interna. Testar injeção também no resumo/copiloto; recusar sem vazar dados.                                                                                                                                                                                                  |
+| **RN12 — Horário**; RF04/05                 | Humano 8h–20h, sete dias/semana; espera visível antes da fila. Fora: protocolo e retorno a partir das 8h; até sete dias corridos para não urgentes. Segurança 24h é exceção.                                                                                                                                                                                                           | PT-37/38, domingo e fronteiras. Convenção proposta: 08h inclusiva, 20h inicia fechamento. Espera e atendimento da demo são simulados; não prometer humano real às 23h.                                                                                                                                |
+
+Fontes: [12 regras no CASE](https://github.com/avenue-community/caqui-invest/blob/main/CASE.md#regras-de-negócio-e-armadilhas), [IR](https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-010.md), [comparação](https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-012.md), [segurança](https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-020.md), [horários](https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-025.md), [protocolos](https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-026.md), [cancelamento](https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-027.md), [prioridade](https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-028.md), [especialista](https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-029.md) e [produtos não oferecidos](https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-030.md).
+
+### Seis obrigações gerais — nenhuma dispensada
+
+1. Humano visível e legível em todo passo, mesmo como ação visual secundária; acesso direto e protocolo/prazo fora do horário — RF04, RN08/12.
+2. Nenhuma recomendação; especialista — RN04.
+3. Toda informação factual com fonte — RF01/02/06, RN13/14.
+4. Golpe interrompe e vai à segurança sem fila — RN05.
+5. Histórico e protocolo acompanham o caso; cliente não repete demanda — RF04–08.
+6. Somente dados sintéticos, inclusive logs e demonstração — RN10.
+
+**Falhas de encaminhamento:** todo atendimento deve ter protocolo; só confirmar registro após persistência. Falha de gravação/envio deve ficar explícita, sem dizer “encaminhado”. Repetição não deve duplicar caso. Encaminhamento registrado, assumido e resolvido são estados distintos, todos simulados nesta demo.
+
+## 5. O que fica de fora?
+
+Dinheiro real, execução financeira, alterações cadastrais, senhas, autenticação bancária/externa ou backend de autenticação, atendimento humano real, integrações externas, sincronização entre dispositivos, editor de FAQ, automações complexas e painel analítico. Não há promessa de entregar todos os cálculos em três horas: funcionalidade sem validação fica desativada, com orientação/encaminhamento seguro.
+
+Não retirar mascaramento, fontes, saída humana, revisão do copiloto ou separação dos contextos para cumprir prazo. Logins e telas demonstrativos não substituem autenticação/autorização no servidor; por isso não podem receber dados reais nem ser apresentados como sistema seguro de produção.
+
+## 6. Como viabilizar esta solução?
+
+| Tempo   | Plano mínimo                                                                                                            |
+| ------- | ----------------------------------------------------------------------------------------------------------------------- |
+| 1ª hora | Dados, catálogo de regras, consultas autorizadas, FAQ e cálculos prioritários                                           |
+| 2ª hora | Logins/telas separados, personas/exemplos do CSV, protocolo, conversa, resumo inicial, pergunta ao copiloto e aprovação |
+| 3ª hora | Testes essenciais, deploy da demo e documentação de capacidades/limites                                                 |
+
+Priorizar três demonstrações: cliente seleciona persona/exemplo e recebe resposta com fonte; exceção com protocolo; após sair e entrar como atendente, continuar pelo resumo e aprovar rascunho para o cliente correto. Se faltar tempo, reduzir geração livre/cálculos, não controles. Produção exige autenticação/autorização no servidor, persistência compartilhada, integrações reais, validação operacional/compliance, responsáveis/SLA e piloto medido.
+
+### Aceite verificável
+
+- **CA01 — Regras:** executar e registrar resultados da [suíte PT-01–40](https://github.com/avenue-community/caqui-invest/blob/main/dados/perguntas_teste.jsonl), identificando testes não atendidos por capacidade desativada. Avaliar significado, ação e registros, não só palavras-chave. Nenhum teste de segurança pode ser dispensado.
+- **CA02 — Datas/valores:** testar fronteiras e exceções da matriz. PT-01: D0 03/11, cotização 04/11 e pagamento 05/11/2026; PT-04 multimercado: 07/12/2026. Testar cálculo ausente e status que não muda por inferência.
+- **CA03 — Continuidade:** demanda e tentativas chegam ao painel com protocolo; falha de persistência não gera confirmação; retry não duplica. Cliente não repete contexto.
+- **CA04 — Copiloto fiel:** resumo corresponde às mensagens/fontes, campos desconhecidos ficam pendentes; pergunta complementar é interna; rascunho não recomenda nem inventa ação.
+- **CA05 — Atualização/aprovação:** nova mensagem marca resumo antigo, versão/horário ficam visíveis; nenhuma resposta aparece ao cliente antes de revisão e envio simulado aprovado.
+- **CA06 — Isolamento demonstrativo:** nos fluxos e rotas da aplicação, cliente não vê dados de outra persona nem painel/FAQ interna; injeção não altera contexto. Inspecionar logs/resumos e CPF mascarado. Separar esses resultados de testes de autenticação/API no servidor, não cobertos pela demo; não alegar proteção contra inspeção/alteração do navegador.
+- **CA07 — Exceções críticas:** golpe às 23h interrompe; prioridade vulnerável preservada; humano fora do horário não é prometido; pedido de reclamação/encerramento não trava.
+- **CA08 — Degradação/acessibilidade:** falha da IA mantém FAQ e encaminhamento; navegar por teclado, verificar foco, texto de status e fontes.
+- **CA09 — Personas/CSV:** conferir os quatro IDs de cliente e a associação de CV-0027/CV-0297 a Marta, CV-0284 a Rafael e CV-0147 a Camila. Celina não recebe exemplos de terceiros. Trocar persona não mistura histórico, dados, protocolo ou resumo; respostas históricas incorretas não viram regras atuais.
+- **CA10 — Entradas e propriedade:** entrar como cliente não mostra ferramentas internas; “Sair” volta à entrada e permite entrar como atendente. Abrir caso, revisar e enviar resposta simulada ao cliente/conversa corretos; reentrar como outra persona não exibe essa conversa. Validar continuidade no mesmo navegador sem apresentá-la como sincronização entre dispositivos.
+- **CA11 — Variante de ajuda/humano:** ajuda/tópicos aparecem como primários; ação humana secundária permanece visível, legível e acessível por teclado em cada passo. “Quero falar com uma pessoa” encaminha sem menu, confirmação ou tentativa prévia; ambiguidade só permite ajuda opcional sem bloquear humano. Após duas incompreensões, oferecer humano; prioridade vulnerável e interrupção por golpe prevalecem.
+- **CA12 — Investimento menos genérico:** nos PT-13–17 e CV-0147, resposta e rascunho reconhecem somente objetivo/valor informados, explicam especialista/perfil e oferecem educação ou encaminhamento com contexto. Não recomendam produto/percentual, não inventam preferências, não repetem perguntas respondidas nem fingem pessoa/agendamento real. Verificar tom específico ao caso, não apenas presença de palavras-chave.
+
+### Decisões para revisão
+
+- Prazo mantido em três horas; substituir recorte CDB por cobertura temática simples.
+- Substituir duas abas por entradas/telas separadas de cliente e atendente, com logout explícito; copiloto interno com bloco inicial e campo de pergunta, não automação autônoma.
+- Seleção de personas baseada em `clientes.json`; exemplos vinculados por `id_cliente` em `conversas.csv`, sem criar exemplos substitutos.
+- Testar menor destaque visual relativo do humano, sem reduzir visibilidade, acessibilidade ou acesso imediato; ajuda é opção, nunca barreira.
+- Tornar respostas de investimento mais contextuais e naturais, preservando encaminhamento ao especialista, ausência de recomendação e transparência sobre IA/simulação.
+- Isolamento demonstrativo de interface/estado/contexto no navegador; autenticação/autorização real no servidor e continuidade multiusuário permanecem requisitos de produção.
+- Todas as 12 regras e seis obrigações preservadas; cálculos condicionados à validação.
+- Horário 08h inclusiva/20h fechamento é convenção proposta, destacada para revisão.
+- Não há evidência de implementação/testes/deploy neste documento. Registrar resultados reais e limitações no README, usando [Como usamos IA](https://github.com/avenue-community/caqui-invest/blob/main/templates/COMO-USAMOS-IA.md).
