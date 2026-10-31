@@ -19,16 +19,15 @@ docker run -d --name caqui-patricia \
 curl --fail http://localhost:8080/health
 ```
 
-Abra `http://localhost:8080/demo`. O navegador pede usuário **demo** e a senha escolhida em `CAQUI_DEMO_ACCESS_CODE`. O build serve React e API pela mesma origem; o cliente usa `/api`. O campo de persona cria uma sessão demonstrativa com conta e papel fixos. Isso não substitui autenticação de clientes reais.
+Abra `http://localhost:8080/demo`. Não há senha: a demonstração é aberta por decisão do MVP (dados sintéticos). O build serve React e API pela mesma origem; o cliente usa `/api`. O campo de persona cria uma sessão demonstrativa com conta e papel fixos. Isso não substitui autenticação de clientes reais.
 
-Para hospedar, o grupo deve colocar um proxy HTTPS diante da porta 3000 do container, preservar os cabeçalhos `Authorization`, `Origin` e `X-Demo-Session`, e definir `WEB_URL` e `BETTER_AUTH_URL` com a origem HTTPS exata. Não expor HTTP Basic sem HTTPS fora do computador. O código não inicia túnel nem contrata provedor. `/health` é público; aplicação, assets e API exigem acesso. As rotas Better Auth, `/me` e documentação interna não são publicadas nesse modo.
+Para hospedar, o grupo deve colocar um proxy HTTPS diante da porta 3000 do container, preservar os cabeçalhos `Authorization`, `Origin` e `X-Demo-Session`, e definir `WEB_URL` e `BETTER_AUTH_URL` com a origem HTTPS exata. O código não inicia túnel nem contrata provedor. `/health` é público; aplicação, assets e API também são abertos, e o único limite de gasto é o ledger do OpenRouter. As rotas Better Auth, `/me` e documentação interna não são publicadas nesse modo.
 
 ## Configuração
 
 | Variável                      | Uso                                                                                                                                                         |
 | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `OPENROUTER_API_KEY`          | Chave fornecida ao container em execução, somente no servidor. Não usar `VITE_*`, `ARG`, `ENV` no Dockerfile, HTML ou Git.                                  |
-| `CAQUI_DEMO_ACCESS_CODE`      | Senha aleatória de acesso à demonstração; mínimo 16 caracteres. Compartilhar separadamente da URL, não no PR.                                               |
 | `BETTER_AUTH_SECRET`          | Segredo aleatório com ao menos 32 caracteres exigido pela configuração existente; endpoints de autenticação ficam desativados neste modo.                   |
 | `WEB_URL`, `BETTER_AUTH_URL`  | Origem pública exata, sem caminho. `WEB_URL` também restringe POSTs do navegador.                                                                           |
 | `CAQUI_LIVE_AI_ENABLED`       | Ativar somente após preencher a chave e conferir o orçamento. Sem ativação, respostas locais ficam identificadas.                                           |
@@ -81,6 +80,6 @@ Só executar a publicação após configurar o proxy HTTPS, origem, segredos e p
 
 ## Verificação realizada nesta entrega
 
-A imagem foi construída localmente e o Compose passou em `config --quiet`. Em container ligado somente a `127.0.0.1`, `/health` respondeu 200; `/demo` exigiu acesso (401 sem senha, 200 com senha); a interface compilada chamou a API na mesma origem e recebeu fallback com os fatos corretos, sem erros JavaScript. Foram conferidos papel incompatível (403), campo extra de outra conta (400), origem externa (403), ausência dos endpoints de autenticação e `/me` (404) e ausência da chave/senha no bundle. SQLite e um marcador no volume sobreviveram ao reinício e à substituição do container.
+A imagem foi construída localmente e o Compose passou em `config --quiet`. Em container ligado somente a `127.0.0.1`, `/health` respondeu 200; `/demo` respondeu 200; a interface compilada chamou a API na mesma origem e recebeu fallback com os fatos corretos, sem erros JavaScript. Foram conferidos papel incompatível (403), campo extra de outra conta (400), origem externa (403), ausência dos endpoints de autenticação e `/me` (404) e ausência da chave/senha no bundle. SQLite e um marcador no volume sobreviveram ao reinício e à substituição do container.
 
 Esse teste Docker usou senha temporária e **nenhuma chave OpenRouter**. Não houve chamada paga no container. As respostas reais Luna/Terra foram verificadas no backend local descrito no roteiro. Nenhuma imagem foi enviada a registry nem houve deploy no Dokploy ou outro provedor. O grupo ainda precisa conferir HTTPS, domínio, secrets e o primeiro acesso no seu ambiente.

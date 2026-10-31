@@ -14,7 +14,6 @@ services:
       BETTER_AUTH_URL: ${WEB_URL:?Configure a origem HTTPS da demonstracao}
       DATABASE_PATH: /app/data/caqui-chatbot.db
       CAQUI_LEDGER_PATH: /app/data/openrouter-usage.jsonl
-      CAQUI_DEMO_ACCESS_CODE: ${CAQUI_DEMO_ACCESS_CODE:?Configure a senha de acesso}
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Configure o segredo da aplicacao}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
       CAQUI_LIVE_AI_ENABLED: ${CAQUI_LIVE_AI_ENABLED:-false}

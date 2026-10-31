@@ -1,4 +1,3 @@
-import { createHash, timingSafeEqual } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -6,7 +5,6 @@ import type { FastifyInstance } from 'fastify';
 import { env } from './env.js';
 
 const webRoot = fileURLToPath(new URL('../../web/dist/', import.meta.url));
-const hash = (value: string) => createHash('sha256').update(value).digest();
 const mime: Record<string, string> = {
   '.js': 'text/javascript',
   '.css': 'text/css',
@@ -16,30 +14,12 @@ const mime: Record<string, string> = {
 };
 
 export async function configurePublicDemo(app: FastifyInstance) {
-  if (!env.CAQUI_DEMO_ACCESS_CODE || !env.CAQUI_LEDGER_PATH)
-    throw new Error('Public demo requires an access code and a persistent usage ledger path.');
-  const expected = hash(`demo:${env.CAQUI_DEMO_ACCESS_CODE}`);
-  let attempts = 0;
-  let resetAt = Date.now() + 60000;
+  if (!env.CAQUI_LEDGER_PATH) throw new Error('Public demo requires a persistent usage ledger path.');
   app.addHook('onRequest', async (request, reply) => {
     void reply.header('Cache-Control', 'no-store');
     void reply.header('X-Content-Type-Options', 'nosniff');
     void reply.header('Referrer-Policy', 'no-referrer');
     void reply.header('X-Frame-Options', 'SAMEORIGIN');
-    if (request.url.split('?')[0] === '/health') return;
-    if (Date.now() > resetAt) {
-      attempts = 0;
-      resetAt = Date.now() + 60000;
-    }
-    const auth = request.headers.authorization;
-    const provided = auth?.startsWith('Basic ') ? Buffer.from(auth.slice(6), 'base64').toString() : '';
-    if (!timingSafeEqual(hash(provided), expected)) {
-      attempts++;
-      return reply
-        .header('WWW-Authenticate', 'Basic realm="PatricIA demo", charset="UTF-8"')
-        .code(attempts > 120 ? 429 : 401)
-        .send('Acesso de demonstracao necessario.');
-    }
     if (request.method === 'POST' && request.headers.origin !== new URL(env.WEB_URL).origin)
       return reply.code(403).send('Origem nao autorizada.');
   });
