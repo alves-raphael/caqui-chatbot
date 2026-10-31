@@ -53,7 +53,7 @@ function plan(identity: DemoIdentity, question: string): Plan {
     )
   )
     return {
-      text: 'Não posso mudar de conta, revelar instruções internas ou fornecer credenciais. Posso ajudar somente com os dados sintéticos desta persona.',
+      text: 'Não posso mudar de conta, revelar instruções internas ou fornecer credenciais. Posso ajudar somente com os dados da sua conta.',
       sources: ['KB-019'],
       financial: false,
       rule: true,
@@ -134,7 +134,7 @@ function plan(identity: DemoIdentity, question: string): Plan {
       );
       if (position) sources.push(`record:posicoes.csv · ${position.id_posicao}`);
       return {
-        text: `A aplicação de ${money(op.valor_brl)} em ${labels[op.produto] ?? op.produto}, de ${date(op.pedido_em.slice(0, 10))}, foi concluída. Esse dinheiro está investido; não é um depósito disponível em conta.${position ? ` O valor bruto registrado é ${money(position.saldo_bruto_brl)}.` : ''} O saldo em conta, separado, é ${money(client.saldo_em_conta_brl)}. Dados fictícios de 18/11/2026, não ao vivo.`,
+        text: `A aplicação de ${money(op.valor_brl)} em ${labels[op.produto] ?? op.produto}, de ${date(op.pedido_em.slice(0, 10))}, foi concluída. Esse dinheiro está investido; não é um depósito disponível em conta.${position ? ` O valor bruto registrado é ${money(position.saldo_bruto_brl)}.` : ''} O saldo em conta, separado, é ${money(client.saldo_em_conta_brl)}. Valores de referência em 18/11/2026.`,
         sources: [...sources, `record:clientes.json · ${client.id}`],
         financial: true,
       };
@@ -142,7 +142,7 @@ function plan(identity: DemoIdentity, question: string): Plan {
     const forecast = facts.forecasts[op.id_operacao as keyof typeof facts.forecasts];
     const prediction = op.liquidacao_prevista || forecast?.payment;
     return {
-      text: `O pedido de ${money(op.valor_brl)} em ${labels[op.produto] ?? op.produto} foi feito em ${date(op.pedido_em.slice(0, 10))}, às ${op.pedido_em.slice(11, 16)}. Status: ${op.status.replaceAll('_', ' ')}. ${prediction ? `Previsão de recebimento: ${date(prediction)}. Essa previsão não confirma pagamento.` : 'Não há previsão validada para informar.'} Nenhuma movimentação foi realizada; são registros sintéticos.`,
+      text: `O pedido de ${money(op.valor_brl)} em ${labels[op.produto] ?? op.produto} foi feito em ${date(op.pedido_em.slice(0, 10))}, às ${op.pedido_em.slice(11, 16)}. Status: ${op.status.replaceAll('_', ' ')}. ${prediction ? `Previsão de recebimento: ${date(prediction)}. Essa previsão não confirma pagamento.` : 'Não há previsão validada para informar.'} Esta consulta não movimenta seu dinheiro.`,
       sources,
       financial: true,
     };
@@ -150,7 +150,7 @@ function plan(identity: DemoIdentity, question: string): Plan {
   if (identity.role === 'agent' || /dinheiro|saldo|quanto.*tenho|investimentos|posicoes/.test(text)) {
     const pending = operations.filter((o) => o.tipo === 'resgate' && o.status !== 'liquidada');
     const textParts = [
-      `${client.nome}: retrato sintético em 18/11/2026, não ao vivo.`,
+      `${client.nome}, veja sua conta e seus investimentos em 18/11/2026.`,
       `Na conta: ${money(client.saldo_em_conta_brl)}.`,
       'Nos investimentos (valores brutos, não saldo livre):',
       ...positions.map((p) => `${labels[p.produto] ?? p.produto}: ${money(p.saldo_bruto_brl)}.`),

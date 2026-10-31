@@ -77,3 +77,5 @@ Itens de “O que vale para qualquer caminho” que não se aplicam: **nenhum**.
 | 31/10/2026 — revisão do usuário | Panorama antes de resgate; aplicação ≠ depósito; linguagem simples e campo visível | Corrigir foco errado, ambiguidade financeira e dificuldade de uso |
 | 31/10/2026 — impacto            | Corrigir 864 horas para 864 × f                                                    | A categoria inclui contatos que o recorte não resolve             |
 | 31/10/2026 — entrega            | Separar demo estática pública de integração local de LLM                           | Não apresentar trabalho local como recurso já publicado           |
+
+**Entrega de infraestrutura:** Dockerfile e Compose para Dokploy, com acesso protegido e volume persistente, descritos em [DEPLOY-DOCKER.md](docs/DEPLOY-DOCKER.md). Por decisão final do usuário, o grupo realiza o deploy; o assistente não publicou a aplicação integrada.

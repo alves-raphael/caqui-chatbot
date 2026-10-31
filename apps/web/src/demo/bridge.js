@@ -2,7 +2,10 @@
 (() => {
   const demo = window.CaquiDemo;
   const config = window.CAQUI_LOCAL_CONFIG;
-  if (!demo || !config || !['localhost', '127.0.0.1'].includes(new URL(config.apiUrl).hostname)) return;
+  if (!demo || !config) return;
+  const apiUrl = new URL(config.apiUrl, config.parentOrigin);
+  if (apiUrl.origin !== config.parentOrigin && !['localhost', '127.0.0.1'].includes(apiUrl.hostname)) return;
+  config.apiUrl = apiUrl.href.replace(/\/$/, '');
   const sessions = new Map();
   let active;
   const status = (text) => window.parent.postMessage({ type: 'caqui-ai-status', text }, config.parentOrigin);

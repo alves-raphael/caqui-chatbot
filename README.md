@@ -20,6 +20,10 @@ O [protótipo editável em HTML](docs/prototipo/README.md) reúne as visões Cli
 
 A [demo local de PatricIA com OpenRouter](docs/prototipo/README.md#ia-conectada-no-computador-local) fica em http://localhost:5174/demo e conecta o chat e o copiloto ao backend Fastify. O HTML aberto diretamente continua offline.
 
+## Deploy com Docker / Dokploy
+
+O [guia de deploy](docs/DEPLOY-DOCKER.md) usa [Dockerfile](Dockerfile) e [compose.prod.yaml](compose.prod.yaml), com senha de acesso, chave somente no servidor e volume persistente. O grupo realiza a publicação; este PR não executa deploy.
+
 ## Requisitos
 
 Node 24 (`.nvmrc`), Docker com Compose, corepack.

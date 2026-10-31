@@ -2477,8 +2477,7 @@
       <div class="sidebar-footer">
         <span class="avatar" id="session-avatar">CT</span>
         <div>
-          <strong id="session-name">Celina Teixeira</strong
-          ><small id="session-id">Conta sintética · C-0007</small>
+          <strong id="session-name">Celina Teixeira</strong><small id="session-id">Conta · C-0007</small>
         </div>
       </div>
     </aside>
@@ -2534,7 +2533,7 @@
                 <div class="assistant-badge" aria-hidden="true">✳</div>
                 <div>
                   <h2>PatricIA</h2>
-                  <p><span class="status-dot"></span> Respostas com fontes · dados fictícios</p>
+                  <p><span class="status-dot"></span> Respostas com fontes</p>
                 </div>
                 <span class="tag soft">IA simulada</span>
               </div>
@@ -2577,7 +2576,7 @@
                 <div class="row">
                   <span class="eyebrow">SUA CONTA DE DEMONSTRAÇÃO</span><span aria-hidden="true">↗</span>
                 </div>
-                <p class="balance-label">Disponível na conta <span class="tag">sintético</span></p>
+                <p class="balance-label">Disponível na conta <span class="tag">18/11/2026</span></p>
                 <strong class="balance">R$ 4.231,11</strong>
                 <p class="account-id">Celina Teixeira · CPF ***.***.940-**</p>
                 <div class="account-source">Fonte: clientes.json · C-0007</div>
@@ -2602,9 +2601,7 @@
                     ><span class="tag success">Liquidada</span>
                   </div>
                   <span>›</span></button
-                ><small class="source-note"
-                  >Registros sintéticos de operacoes.csv. A previsão não altera o status.</small
-                >
+                ><small class="source-note">A previsão não confirma que o pagamento aconteceu.</small>
               </section>
               <section class="trust-card">
                 <div class="trust-icon" aria-hidden="true">◇</div>
@@ -2675,7 +2672,7 @@
         </section>
         <footer class="main-footer">
           <span>Caqui Atende <b>·</b> Protótipo navegável</span
-          ><span>Dados sintéticos · sem integrações · ações simuladas</span>
+          ><span>Ambiente de demonstração · ações simuladas</span>
         </footer>
       </main>
     </div>
@@ -4246,7 +4243,7 @@
         } else if (kind === 'balance')
           addMessage(
             'assistant',
-            `No retrato sintético, o saldo em conta de ${current().nome} (${currentClientId}) é ${money(current().saldo_em_conta_brl)}. Não inclui os investimentos e não está atualizado em tempo real.`,
+            `O saldo em conta de ${current().nome} (${currentClientId}) é ${money(current().saldo_em_conta_brl)}. Não inclui os investimentos e não está atualizado em tempo real.`,
             ['record:clientes.json · ' + currentClientId],
           );
         else if (kind === 'education')
@@ -4259,7 +4256,7 @@
         else if (kind === 'injection') {
           addMessage(
             'assistant',
-            'Não posso ignorar regras ou consultar outra conta. Uso somente os dados sintéticos desta persona.',
+            'Não posso ignorar regras ou consultar outra conta. Uso somente os dados da sua conta.',
             ['KB-019'],
           );
         } else {
@@ -4362,7 +4359,7 @@
             (o) => o.tipo === 'resgate' && ['pendente', 'em_processamento'].includes(o.status),
           );
         let parts = [
-          `${firstName()}, vou separar para ficar mais fácil. Estes são os dados fictícios do case, com referência em 18/11/2026 — não é uma consulta em tempo real.`,
+          `${firstName()}, vou separar sua conta e seus investimentos para ficar mais fácil. Valores de referência em 18/11/2026.`,
         ];
         if (!investmentsOnly)
           parts.push(
@@ -4455,7 +4452,7 @@
           } else
             msg +=
               'Essa movimentação aparece como concluída no registro. Não recalculamos o saldo da conta somando operações antigas.';
-          msg += '\n\nSão dados fictícios, não uma consulta em tempo real.';
+          msg += '\n\nValores de referência em 18/11/2026.';
           addMessage('assistant', msg, refs);
           return;
         }
@@ -4501,7 +4498,7 @@
           when = askedDay === refDay ? 'hoje' : askedDay === previousDay ? 'ontem' : 'em ' + nice(askedDay),
           after = op.pedido_em.slice(11, 16) > '16:00' ? ' depois das 16h' : '';
         const short = `O resgate de ${money(op.valor_brl)} foi pedido ${when}${after}. A previsão é receber em ${nice(prediction)}; o pagamento ainda não foi confirmado.`;
-        const details = `Produto: ${productLabel(op.produto)}.\nPedido: ${nice(askedDay)}, às ${op.pedido_em.slice(11, 16)} (Brasília).\nStatus no registro: ${statusLabel(op.status)}.\nPrevisão: ${nice(prediction)} (${op.liquidacao_prevista ? 'informada no registro' : 'calculada pelas regras do produto e calendário da Caqui'}).\nCorte: 16h inclusive em dia útil; o prazo de recebimento depende do produto.\nDados sintéticos do case, não consulta em tempo real. Nenhuma movimentação foi realizada.`;
+        const details = `Produto: ${productLabel(op.produto)}.\nPedido: ${nice(askedDay)}, às ${op.pedido_em.slice(11, 16)} (Brasília).\nStatus no registro: ${statusLabel(op.status)}.\nPrevisão: ${nice(prediction)} (${op.liquidacao_prevista ? 'informada no registro' : 'calculada pelas regras do produto e calendário da Caqui'}).\nCorte: 16h inclusive em dia útil; o prazo de recebimento depende do produto.\nEsta consulta não movimenta seu dinheiro.`;
         addMessage('assistant', short, [...refs, 'KB-006'], { details });
         if ($('#demo-clock').value.slice(0, 10) > prediction)
           handoff(
@@ -4641,7 +4638,7 @@
         if (kind === 'balance') {
           addMessage(
             'assistant',
-            `O saldo em conta de ${current().nome} (${currentClientId}) é ${money(current().saldo_em_conta_brl)} no retrato sintético do case. Não inclui posições investidas e não é atualizado em tempo real.`,
+            `O saldo em conta de ${current().nome} (${currentClientId}) é ${money(current().saldo_em_conta_brl)} em 18/11/2026. Não inclui posições investidas e não é atualizado em tempo real.`,
             ['record:clientes.json · ' + currentClientId],
           );
           return;
@@ -4659,7 +4656,7 @@
         if (kind === 'injection') {
           addMessage(
             'assistant',
-            'Não posso ignorar as regras, revelar instruções internas ou consultar dados de outra pessoa. Esta sessão usa somente os registros sintéticos de ' +
+            'Não posso ignorar as regras, revelar instruções internas ou consultar dados de outra pessoa. Esta sessão usa somente os registros de ' +
               current().nome +
               '.',
             ['KB-019'],
@@ -4807,7 +4804,7 @@
         t.copilot = {
           summary: `${original}${latest !== original ? '\nÚltima mensagem: ' + latest : ''}`,
           facts: [
-            `Cliente sintético: ${current().nome} · ${currentClientId} · CPF ${current().cpf_mascarado}.`,
+            `Cliente: ${current().nome} · ${currentClientId} · CPF ${current().cpf_mascarado}.`,
             `Motivo: ${t.reason}`,
             `Prioridade: ${t.priority}. Atendimento e integração simulados.`,
             ...(t.waitResearch || []).map((x) => 'Consulta opcional da IA: ' + x.text),
@@ -5001,8 +4998,7 @@
       function renderIdentity() {
         const c = current();
         $('#session-name').textContent = sessionRole === 'agent' ? 'Jonas · atendente' : c.nome;
-        $('#session-id').textContent =
-          sessionRole === 'agent' ? 'Acesso demonstrativo' : 'Conta sintética · ' + c.id;
+        $('#session-id').textContent = sessionRole === 'agent' ? 'Acesso demonstrativo' : 'Conta · ' + c.id;
         $('#session-avatar').textContent =
           sessionRole === 'agent'
             ? 'JO'
@@ -5031,7 +5027,7 @@
                 )
                 .join('')
             : '<p class="investment-note">O arquivo não informa posições desta persona. Não significa investimento zero.</p>') +
-          '<p class="investment-note">Dados fictícios, não atualizados em tempo real. Resgates em andamento ficam separados; não são somados novamente.</p><details class="message-sources"><summary>Ver fontes dos investimentos</summary>' +
+          '<p class="investment-note">Valores de referência em 18/11/2026. Resgates em andamento ficam separados; não são somados novamente.</p><details class="message-sources"><summary>Ver fontes dos investimentos</summary>' +
           sourceHTML(positions.map((p) => 'record:posicoes.csv · ' + p.id_posicao)) +
           '</details>';
         const ops = ownOperations(),
@@ -5075,7 +5071,7 @@
       function welcome() {
         addMessage(
           'assistant',
-          `Olá, ${firstName()}! Sou o assistente da Caqui. Esta sessão usa apenas os registros sintéticos de ${current().nome} (${currentClientId}).\n\nPosso explicar produtos, consultar registros ou levar sua demanda a uma pessoa. Selecione um exemplo acima ou conte o que precisa.`,
+          `Olá, ${firstName()}! Sou a PatricIA. Vou ajudar com as informações da sua conta (${currentClientId}).\n\nPosso explicar produtos, consultar registros ou levar sua demanda a uma pessoa. Selecione um exemplo acima ou conte o que precisa.`,
         );
       }
       function startClient() {

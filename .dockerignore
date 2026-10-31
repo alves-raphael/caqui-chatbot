@@ -1,0 +1,15 @@
+.git
+.env
+.env.*
+!.env.example
+.logs
+data
+node_modules
+**/node_modules
+**/dist
+apps/web/screenshots
+apps/web/test-results
+apps/web/e2e/.auth
+apps/web/playwright-report
+.agents
+.codex

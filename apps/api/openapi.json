@@ -789,9 +789,6 @@
                       "type": "boolean"
                     },
                     "localOnly": {
-                      "enum": [
-                        true
-                      ],
                       "type": "boolean"
                     },
                     "reservedUsd": {

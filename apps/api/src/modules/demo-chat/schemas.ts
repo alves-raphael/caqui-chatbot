@@ -28,7 +28,7 @@ export const chatResponseSchema = z.object({
 });
 export const statusSchema = z.object({
   enabled: z.boolean(),
-  localOnly: z.literal(true),
+  localOnly: z.boolean(),
   reservedUsd: z.number(),
   actualUsd: z.number(),
   calls: z.number(),

@@ -17,6 +17,10 @@ const schema = z.object({
   OPENROUTER_API_KEY: z.string().min(1).optional(),
   CAQUI_LIVE_AI_ENABLED: z.enum(['true', 'false']).default('false'),
   CAQUI_TEST_BUDGET_USD: z.coerce.number().min(0).max(5).default(0),
+  CAQUI_PUBLIC_DEMO: z.enum(['true', 'false']).default('false'),
+  CAQUI_DEMO_ACCESS_CODE: z.string().min(16).optional(),
+  CAQUI_LEDGER_PATH: z.string().min(1).optional(),
+  CAQUI_PREVIOUS_RESERVED_USD: z.coerce.number().min(0).max(5).default(0),
 });
 
 const parsed = schema.safeParse(process.env);

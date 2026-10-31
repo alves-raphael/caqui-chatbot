@@ -18,16 +18,26 @@ import {
 
 export const provider = new OpenRouterProvider({
   apiKey: env.OPENROUTER_API_KEY,
-  enabled: env.CAQUI_LIVE_AI_ENABLED === 'true' && env.NODE_ENV === 'development',
+  enabled:
+    env.CAQUI_LIVE_AI_ENABLED === 'true' &&
+    (env.NODE_ENV === 'development' || env.CAQUI_PUBLIC_DEMO === 'true'),
   budgetUsd: env.CAQUI_TEST_BUDGET_USD,
+  previousReservedUsd: env.CAQUI_PREVIOUS_RESERVED_USD,
+  localOnly: env.CAQUI_PUBLIC_DEMO !== 'true',
   ...(env.NODE_ENV === 'test'
     ? {}
-    : { ledgerPath: fileURLToPath(new URL('../../../../../.logs/openrouter-usage.jsonl', import.meta.url)) }),
+    : {
+        ledgerPath:
+          env.CAQUI_LEDGER_PATH ??
+          fileURLToPath(new URL('../../../../../.logs/openrouter-usage.jsonl', import.meta.url)),
+      }),
 });
 export const demoChatService = new DemoChatService(provider);
 type Session = DemoIdentity & { expiresAt: number; busy: boolean; requests: number[] };
 const sessions = new Map<string, Session>();
 function localOnly(request: FastifyRequest): Promise<void> {
+  // Public demo is protected by the global access-code and same-origin guards.
+  if (env.CAQUI_PUBLIC_DEMO === 'true') return Promise.resolve();
   if (env.NODE_ENV === 'production' || !['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(request.ip))
     throw new AppError(403, 'LOCAL_DEMO_ONLY', 'Esta integração é restrita ao computador local.');
   if (request.headers.origin && request.headers.origin !== env.WEB_URL)
