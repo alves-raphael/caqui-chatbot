@@ -2392,6 +2392,21 @@
           grid-column: span 2;
         }
       }
+
+      .answer-details {
+        margin-top: 10px;
+      }
+      .answer-details summary {
+        font-size: 11px;
+        color: var(--green);
+        cursor: pointer;
+      }
+      .answer-details p {
+        font-size: 11px;
+        line-height: 1.65;
+        margin: 8px 0;
+        white-space: pre-line;
+      }
     </style>
   </head>
   <body>
@@ -3718,6 +3733,11 @@
           )
             return 'advice';
           if (
+            /ate que horas|horario limite|ate (as )?16h|antes.*16h/.test(s) &&
+            /resgat|cdb|liquidez/.test(s)
+          )
+            return 'cutoff';
+          if (
             !/resgate|saque|retirei|op-\d/.test(s) &&
             /onde.*dinheiro|cade.*dinheiro|meu dinheiro|quanto.*tenho|saldo(?: em conta| total)?|meus investimentos|quanto.*investid/.test(
               s,
@@ -3772,7 +3792,7 @@
       const nice = (d) => (d ? d.split('-').reverse().join('/') : 'não disponível');
       const FAQ = {
         liquidity: [
-          'Liquidez diária permite pedir resgate em qualquer dia útil. O dinheiro retorna à conta conforme o prazo do produto. Para CDB diário, pedidos até 16h inclusive em dia útil têm previsão no mesmo dia; depois disso, no próximo dia útil. Previsão não é confirmação de liquidação.',
+          'Para CDB com liquidez diária, você pode pedir o resgate até as 16h (inclusive), em dia útil, com previsão de receber no mesmo dia. Depois desse horário, a previsão passa para o próximo dia útil.',
           ['KB-004', 'KB-006'],
         ],
         cdb: [
@@ -3836,6 +3856,10 @@
           ['KB-030'],
         ],
       };
+      FAQ.cutoff = [
+        'O limite é 16h (inclusive), em dia útil. Depois desse horário ou em dia não útil, o pedido conta a partir do próximo dia útil; o dia do recebimento depende do produto.',
+        ['KB-006'],
+      ];
       const freshState = () => ({
         messages: [],
         tickets: [],
@@ -3912,7 +3936,7 @@
           .join('');
       }
       function messageHTML(m) {
-        return `<article class="message ${m.role}"><div class="message-name">${m.role === 'user' ? 'Cliente · ' + esc(firstName()) : m.role === 'human' ? 'Atendente · envio simulado' : m.role === 'system' ? 'Atualização da demonstração' : 'Caqui Assistente · IA simulada'} <span>· ${esc(m.time?.slice(11, 16) || '10:00')}</span></div><div class="bubble">${esc(m.text)}${m.refs?.length ? `<details class="sources message-sources"><summary>Ver fontes desta resposta</summary>${sourceHTML(m.refs)}</details>` : ''}${m.action === 'fraud' ? '<button class="inline-action" data-block>Simular bloqueio de acesso</button>' : ''}${m.action === 'advice' && sessionRole === 'client' ? '<div class="advice-actions"><button data-advice-education>Entender as diferenças</button><button data-advice-human>Falar com especialista</button></div>' : ''}${m.action === 'money-overview' && sessionRole === 'client' ? '<div class="wait-choices"><button data-money="investments">Ver meus investimentos</button><button data-money="resgate">Entender meu resgate</button></div>' : ''}${waitActionHTML(m)}${m.ticket ? `<span class="record-label">Contexto salvo no protocolo ${esc(m.ticket)}.</span>` : ''}</div></article>`;
+        return `<article class="message ${m.role}"><div class="message-name">${m.role === 'user' ? 'Cliente · ' + esc(firstName()) : m.role === 'human' ? 'Atendente · envio simulado' : m.role === 'system' ? 'Atualização da demonstração' : 'Caqui Assistente · IA simulada'} <span>· ${esc(m.time?.slice(11, 16) || '10:00')}</span></div><div class="bubble">${esc(m.text)}${m.details ? `<details class="answer-details"><summary>Ver detalhes do pedido</summary><p>${esc(m.details)}</p></details>` : ''}${m.refs?.length ? `<details class="sources message-sources"><summary>Ver fontes desta resposta</summary>${sourceHTML(m.refs)}</details>` : ''}${m.action === 'fraud' ? '<button class="inline-action" data-block>Simular bloqueio de acesso</button>' : ''}${m.action === 'advice' && sessionRole === 'client' ? '<div class="advice-actions"><button data-advice-education>Entender as diferenças</button><button data-advice-human>Falar com especialista</button></div>' : ''}${m.action === 'money-overview' && sessionRole === 'client' ? '<div class="wait-choices"><button data-money="investments">Ver meus investimentos</button><button data-money="resgate">Entender meu resgate</button></div>' : ''}${waitActionHTML(m)}${m.ticket ? `<span class="record-label">Contexto salvo no protocolo ${esc(m.ticket)}.</span>` : ''}</div></article>`;
       }
       function addMessage(role, text, refs = [], extra = {}) {
         let m = { role, text: R.sanitize(text), refs, time: stamp(), ...extra };
@@ -4256,7 +4280,11 @@
           .filter((m) => m.role === 'assistant' && m.refs?.length && !m.ticket);
         t.waitResearch = [
           ...(t.waitResearch || []),
-          ...checked.map((m) => ({ text: m.text, refs: m.refs, time: m.time })),
+          ...checked.map((m) => ({
+            text: m.text + (m.details ? '\n' + m.details : ''),
+            refs: m.refs,
+            time: m.time,
+          })),
         ];
         if (t.waitStage === 'disabled') {
           save();
@@ -4452,9 +4480,14 @@
           );
           return;
         }
-        msg +=
-          '\n\nEssa é uma previsão, não a confirmação de pagamento. Ela se refere a este pedido de resgate, não a todo o dinheiro da sua conta. A demonstração não movimenta dinheiro.';
-        addMessage('assistant', msg, [...refs, 'KB-006']);
+        const refDay = $('#demo-clock').value.slice(0, 10),
+          previousDay = new Date(Date.parse(refDay + 'T12:00:00Z') - 86400000).toISOString().slice(0, 10),
+          askedDay = op.pedido_em.slice(0, 10),
+          when = askedDay === refDay ? 'hoje' : askedDay === previousDay ? 'ontem' : 'em ' + nice(askedDay),
+          after = op.pedido_em.slice(11, 16) > '16:00' ? ' depois das 16h' : '';
+        const short = `O resgate de ${money(op.valor_brl)} foi pedido ${when}${after}. A previsão é receber em ${nice(prediction)}; o pagamento ainda não foi confirmado.`;
+        const details = `Produto: ${productLabel(op.produto)}.\nPedido: ${nice(askedDay)}, às ${op.pedido_em.slice(11, 16)} (Brasília).\nStatus no registro: ${statusLabel(op.status)}.\nPrevisão: ${nice(prediction)} (${op.liquidacao_prevista ? 'informada no registro' : 'calculada pelas regras do produto e calendário da Caqui'}).\nCorte: 16h inclusive em dia útil; o prazo de recebimento depende do produto.\nDados sintéticos do case, não consulta em tempo real. Nenhuma movimentação foi realizada.`;
+        addMessage('assistant', short, [...refs, 'KB-006'], { details });
         if ($('#demo-clock').value.slice(0, 10) > prediction)
           handoff(
             'delay',
@@ -4467,6 +4500,7 @@
         input = input.trim();
         if (!input) return;
         let kind = forced || R.route(input);
+        if (kind === 'cutoff' && /\bcdb\b/i.test(input)) kind = 'liquidity';
         const requestedId = input.match(/OP-\d+/i)?.[0]?.toUpperCase();
         const applicationMention = findApplicationQuestion(input);
         if (requestedId) kind = 'operation';

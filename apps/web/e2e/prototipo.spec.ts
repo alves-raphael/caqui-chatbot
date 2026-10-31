@@ -78,8 +78,10 @@ test('consulta local mostra fontes e previsão sem confirmar liquidação', asyn
   expect(orange).toBe('#d94e1b');
   await page.getByRole('button', { name: 'Acompanhar resgate', exact: true }).click();
   const chat = page.locator('#client-chat');
-  await expect(chat).toContainText('a previsão calculada é 18/11/2026');
-  await expect(chat).toContainText('Essa é uma previsão, não a confirmação de pagamento');
+  await expect(chat).toContainText('A previsão é receber em 18/11/2026');
+  await expect(chat).toContainText('o pagamento ainda não foi confirmado');
+  await chat.getByText('Ver detalhes do pedido', { exact: true }).click();
+  await expect(chat).toContainText('calculada pelas regras do produto e calendário da Caqui');
   await chat.getByText('Ver fontes desta resposta', { exact: true }).click();
   await expect(chat.getByRole('link', { name: /KB-006/ })).toHaveAttribute(
     'href',
@@ -207,6 +209,30 @@ async function savedTickets(page: Page, clientId = 'C-0002') {
     return saved.tickets.map(({ id, created, priority, handling }) => ({ id, created, priority, handling }));
   }, clientId);
 }
+
+test('resgate de Marta tem explicação curta, detalhes expansíveis e corte das 16h', async ({
+  page,
+}, testInfo) => {
+  await page.setViewportSize({ width: 390, height: 740 });
+  await loginClient(page, 'C-0001');
+  await sendClientMessage(page, 'Onde está meu resgate do CDB?');
+  const answer = page.locator('#client-chat .assistant').last();
+  await expect(answer).toContainText(/resgate de R\$\s*40\.000,00 foi pedido ontem depois das 16h/);
+  await expect(answer).toContainText(
+    'A previsão é receber em 18/11/2026; o pagamento ainda não foi confirmado',
+  );
+  await expect(answer.locator('.answer-details')).not.toHaveAttribute('open', '');
+  await expect(answer.locator('.answer-details p')).toBeHidden();
+  await page.screenshot({ path: testInfo.outputPath('resgate-explicacao-curta.png') });
+  await answer.getByText('Ver detalhes do pedido', { exact: true }).click();
+  await expect(answer.locator('.answer-details p')).toBeVisible();
+  await expect(answer.locator('.answer-details p')).toContainText('CDB Caqui Liquidez Diária 110');
+  await expect(answer.locator('.answer-details p')).toContainText('Em processamento');
+  await sendClientMessage(page, 'Até que horas posso pedir o resgate do CDB?');
+  await expect(page.locator('#client-chat .assistant').last()).toContainText('16h (inclusive), em dia útil');
+  await expect(page.locator('#client-chat .assistant').last()).toContainText('próximo dia útil');
+  expect(await savedTickets(page, 'C-0001')).toEqual([]);
+});
 
 test('protocolo precede a oferta opcional e recusar a IA preserva registro e prioridade', async ({
   page,
