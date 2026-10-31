@@ -6,6 +6,7 @@ import { errorResponseSchema } from '@caqui-chatbot/shared';
 import { env } from '../../env.js';
 import { AppError } from '../../lib/errors.js';
 import { OpenRouterProvider } from './openrouter.js';
+import { supportAvailability } from './availability.js';
 import { DemoChatService } from './service.js';
 import {
   chatRequestSchema,
@@ -13,6 +14,8 @@ import {
   sessionRequestSchema,
   sessionResponseSchema,
   statusSchema,
+  flowRequestSchema,
+  flowResponseSchema,
   type DemoIdentity,
 } from './schemas.js';
 
@@ -33,7 +36,15 @@ export const provider = new OpenRouterProvider({
       }),
 });
 export const demoChatService = new DemoChatService(provider);
-type Session = DemoIdentity & { expiresAt: number; busy: boolean; requests: number[] };
+type Session = DemoIdentity & {
+  expiresAt: number;
+  busy: boolean;
+  requests: number[];
+  state: 'bot' | 'helpOptional' | 'queued' | 'human' | 'closed';
+  revision: number;
+  steps: number;
+  security: boolean;
+};
 const sessions = new Map<string, Session>();
 function localOnly(request: FastifyRequest): Promise<void> {
   // Public demo is protected by the global access-code and same-origin guards.
@@ -48,6 +59,7 @@ const errors = {
   400: errorResponseSchema,
   401: errorResponseSchema,
   403: errorResponseSchema,
+  409: errorResponseSchema,
   429: errorResponseSchema,
   500: errorResponseSchema,
 };
@@ -78,13 +90,66 @@ export const demoChatRoutes: FastifyPluginAsyncZod = async (app) => {
       },
     },
     (request) => {
-      for (const [key, value] of sessions) if (value.expiresAt < Date.now()) sessions.delete(key);
+      for (const [key, value] of sessions)
+        if (value.expiresAt < Date.now()) {
+          sessions.delete(key);
+          demoChatService.clearConversation(key);
+        }
       if (sessions.size >= 100)
         throw new AppError(429, 'SESSION_LIMIT', 'Reinicie o servidor para uma nova rodada da demonstração.');
       const token = randomBytes(32).toString('hex'),
         expiresAt = Date.now() + 30 * 60 * 1000;
-      sessions.set(token, { ...request.body, expiresAt, busy: false, requests: [] });
+      sessions.set(token, {
+        ...request.body,
+        expiresAt,
+        busy: false,
+        requests: [],
+        state: 'bot',
+        revision: 0,
+        steps: 0,
+        security: false,
+      });
       return { ...request.body, token, expiresAt };
+    },
+  );
+  app.post(
+    '/demo/flow',
+    {
+      preHandler: localOnly,
+      schema: {
+        operationId: 'transitionDemoConversation',
+        tags: ['local-demo'],
+        summary: 'Queue a demonstration conversation or let the matching demo agent assume it',
+        body: flowRequestSchema,
+        response: { 200: flowResponseSchema, ...errors },
+      },
+    },
+    (request) => {
+      const token = request.headers['x-demo-session'];
+      const actor = typeof token === 'string' ? sessions.get(token) : undefined;
+      if (!actor || actor.expiresAt < Date.now())
+        throw new AppError(401, 'DEMO_SESSION_REQUIRED', 'Abra uma sessão de demonstração.');
+      const target = request.body.clientSession ? sessions.get(request.body.clientSession) : actor;
+      if (
+        !target ||
+        target.role !== 'client' ||
+        target.expiresAt < Date.now() ||
+        target.clientId !== actor.clientId
+      )
+        throw new AppError(403, 'CASE_DENIED', 'Atendimento não disponível nesta sessão.');
+      const availability = supportAvailability(target.security || request.body.event === 'security');
+      if (request.body.event === 'assume') {
+        if (actor.role !== 'agent' || target.state !== 'queued')
+          throw new AppError(403, 'ASSUME_DENIED', 'Somente o atendente pode assumir um protocolo na fila.');
+        if (!availability.available)
+          throw new AppError(409, 'SUPPORT_CLOSED', availability.message, { availability });
+        target.state = 'human';
+      } else if (request.body.event === 'queue' || request.body.event === 'security') {
+        if (request.body.event === 'security') target.security = true;
+        if (target.state !== 'closed') target.state = 'queued';
+      } else target.state = 'closed';
+      target.revision++;
+      return { state: target.state, availability };
     },
   );
   for (const role of ['client', 'agent'] as const) {
@@ -107,13 +172,48 @@ export const demoChatRoutes: FastifyPluginAsyncZod = async (app) => {
           throw new AppError(401, 'DEMO_SESSION_REQUIRED', 'Abra uma sessão local de demonstração.');
         if (session.role !== role)
           throw new AppError(403, 'ROLE_DENIED', 'Esta sessão não pode acessar o copiloto interno.');
+        if (role === 'client' && !['bot', 'helpOptional'].includes(session.state))
+          throw new AppError(
+            409,
+            'AI_PAUSED',
+            'A IA está pausada neste atendimento. Aguarde a pessoa assumir; depois as mensagens seguem para ela.',
+          );
         session.requests = session.requests.filter((at) => at > Date.now() - 60000);
         if (session.busy || session.requests.length >= 10)
           throw new AppError(429, 'DEMO_RATE_LIMIT', 'Aguarde a resposta atual ou tente mais tarde.');
         session.requests.push(Date.now());
         session.busy = true;
         try {
-          return await demoChatService.answer(session, request.body);
+          const revision = session.revision;
+          if (role === 'client' && ++session.steps > 5) {
+            session.state = 'queued';
+            session.revision++;
+            return {
+              text: 'Vou encaminhar o histórico para uma pessoa continuar. Aguarde o atendente assumir.',
+              sources: ['KB-025', 'KB-026'],
+              mode: 'rule' as const,
+              model: null,
+              costUsd: 0,
+              handoff: 'support' as const,
+              notice: 'Limite de etapas da IA atingido; atendimento encaminhado.',
+            };
+          }
+          const response = await demoChatService.answer(
+            session,
+            request.body,
+            typeof token === 'string' ? token : undefined,
+          );
+          if (
+            role === 'client' &&
+            (revision !== session.revision || !['bot', 'helpOptional'].includes(session.state))
+          )
+            throw new AppError(409, 'AI_PAUSED', 'Resposta descartada porque o atendimento mudou de estado.');
+          if (role === 'client' && response.handoff) {
+            if (response.handoff === 'security') session.security = true;
+            session.state = 'queued';
+            session.revision++;
+          }
+          return response;
         } finally {
           session.busy = false;
         }

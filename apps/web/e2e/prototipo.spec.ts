@@ -235,117 +235,77 @@ test('resgate de Marta tem explicação curta, detalhes expansíveis e corte das
   expect(await savedTickets(page, 'C-0001')).toEqual([]);
 });
 
-test('protocolo precede a oferta opcional e recusar a IA preserva registro e prioridade', async ({
-  page,
-}) => {
+test('encaminhamento final bloqueia mensagens e preserva protocolo após recarregar', async ({ page }) => {
   await loginClient(page, 'C-0002');
   await page.getByRole('button', { name: '♧ Falar com uma pessoa', exact: true }).click();
   const before = await savedTickets(page);
   expect(before).toHaveLength(1);
   expect(before[0]).toMatchObject({ priority: 'Normal', handling: 'waiting' });
-  const messages = await page.locator('#client-chat .assistant').allTextContents();
-  const registered = messages.findIndex((text) => text.includes('Protocolo salvo neste navegador'));
-  const offered = messages.findIndex((text) => text.includes('Sou a IA desta demonstração'));
-  expect(registered).toBeGreaterThanOrEqual(0);
-  expect(offered).toBeGreaterThan(registered);
-  await expect(page.locator('#client-chat')).toContainText('não tenho uma posição ou tempo real de espera');
-  await page.getByRole('button', { name: 'Prefiro só aguardar', exact: true }).click();
-  await expect(page.locator('#client-chat')).toContainText('Seu protocolo e sua prioridade permanecem');
-  await sendClientMessage(page, 'Como funciona o imposto?');
-  expect(await savedTickets(page)).toEqual(before);
-  await expect(page.locator('#client-chat .message').last()).toHaveClass(/user/);
+  await expect(page.locator('#client-input')).toBeDisabled();
+  await expect(page.locator('#waiting-strip')).toContainText('Aguarde o atendente');
+  await expect(page.locator('[data-wait]')).toHaveCount(0);
   await page.reload();
   await loginClient(page, 'C-0002');
   expect(await savedTickets(page)).toEqual(before);
-  await expect(page.locator('#waiting-strip')).toContainText(before[0]!.id);
+  await expect(page.locator('#client-input')).toBeDisabled();
 });
 
-test('ajuda reaproveita o histórico e só encerra o protocolo com confirmação explícita', async ({ page }) => {
+test('histórico anterior acompanha a fila sem pedir nova triagem', async ({ page }) => {
   await loginClient(page, 'C-0002');
   await sendClientMessage(page, 'Como funciona o imposto?');
   await page.getByRole('button', { name: '♧ Falar com uma pessoa', exact: true }).click();
-  const before = await savedTickets(page);
-  await page.getByRole('button', { name: 'Quero ajuda da IA enquanto aguardo', exact: true }).click();
-  await expect(page.locator('#client-chat')).toContainText('Vou partir do que você já contou');
-  await expect(page.getByRole('button', { name: 'Isso resolveu minha dúvida', exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Isso resolveu minha dúvida', exact: true }).click();
-  await expect(page.locator('#client-chat')).toContainText('Até você confirmar, ele continua aberto');
-  expect(await savedTickets(page)).toEqual(before);
-  await page.getByRole('button', { name: 'Não, manter meu atendimento', exact: true }).click();
-  expect(await savedTickets(page)).toEqual(before);
-  await page.getByRole('button', { name: 'Ajuda opcional da IA', exact: true }).click();
-  await page.getByRole('button', { name: 'Quero ajuda da IA enquanto aguardo', exact: true }).click();
-  await page.getByRole('button', { name: 'Isso resolveu minha dúvida', exact: true }).click();
-  await page.getByRole('button', { name: 'Sim, encerrar este protocolo', exact: true }).click();
-  expect(await savedTickets(page)).toEqual([{ ...before[0], handling: 'closed' }]);
-  await expect(page.locator('#waiting-strip')).toBeHidden();
-  await expect(page.locator('#client-chat')).toContainText(
-    'Sua conta e seus investimentos não foram alterados',
-  );
   await logout(page);
   await page.getByRole('button', { name: 'Entrar como atendente →', exact: true }).click();
-  await expect(page.locator('#ticket-list')).toContainText('Encerrado pelo cliente · simulado');
-  await expect(
-    page.getByRole('button', { name: 'Assumir atendimento · simulação', exact: true }),
-  ).toHaveCount(0);
+  await expect(page.locator('#copilot-content')).toContainText('Como funciona o imposto?');
+  await expect(page.locator('#copilot-content')).toContainText('Consulta anterior da IA');
+  await expect(page.getByRole('checkbox', { name: /Revisei o texto/ })).toBeDisabled();
 });
 
-test('Jonas recebe a pesquisa e assumir interrompe a IA sem misturar clientes', async ({
+test('Jonas recebe a pesquisa e assumir libera mensagens humanas sem misturar clientes', async ({
   page,
 }, testInfo) => {
   await loginClient(page, 'C-0002');
-  await page.getByRole('button', { name: '♧ Falar com uma pessoa', exact: true }).click();
-  await page.getByRole('button', { name: 'Quero ajuda da IA enquanto aguardo', exact: true }).click();
   await sendClientMessage(page, 'Quanto tenho na conta?');
-  await expect(page.locator('#client-chat')).toContainText(/R\$\s*3\.420,55/);
+  await page.getByRole('button', { name: '♧ Falar com uma pessoa', exact: true }).click();
+  await expect(page.locator('#client-input')).toBeDisabled();
   await logout(page);
   await loginClient(page, 'C-0003');
-  await expect(page.locator('#client-chat')).not.toContainText(/R\$\s*3\.420,55/);
-  await expect(page.locator('#waiting-strip')).toBeHidden();
+  await expect(page.locator('#client-chat')).not.toContainText(/3\.420,55/);
   await logout(page);
   await page.getByRole('button', { name: 'Entrar como atendente →', exact: true }).click();
-  await expect(page.locator('#agent-chat')).toContainText('Quanto tenho na conta?');
   await expect(page.locator('#copilot-content')).toContainText(/3\.420,55/);
-  await expect(page.getByRole('checkbox', { name: /Revisei o texto/ })).toBeDisabled();
   await page.getByRole('button', { name: 'Assumir atendimento · simulação', exact: true }).click();
   await expect(page.getByRole('checkbox', { name: /Revisei o texto/ })).toBeEnabled();
   await page.screenshot({ path: testInfo.outputPath('pesquisa-no-atendimento.png') });
   await logout(page);
   await loginClient(page, 'C-0002');
-  await expect(page.locator('#waiting-strip')).toContainText('Jonas assumiu');
+  await expect(page.locator('#client-input')).toBeEnabled();
   const answers = await page.locator('#client-chat .assistant').count();
   await sendClientMessage(page, 'Como funciona o imposto?');
   await expect(page.locator('#client-chat .assistant')).toHaveCount(answers);
-  await expect(page.locator('#client-chat .message').last()).toHaveClass(/user/);
-  await expect(page.getByRole('button', { name: 'Ajuda opcional da IA', exact: true })).toHaveCount(0);
   expect((await savedTickets(page))[0]?.handling).toBe('human');
 });
 
-test('consulta sem resposta segura mantém o protocolo e registra o limite', async ({ page }) => {
+test('consulta sem fonte encaminha e bloqueia o chat automaticamente', async ({ page }) => {
   await loginClient(page, 'C-0002');
-  await page.getByRole('button', { name: '♧ Falar com uma pessoa', exact: true }).click();
-  const before = await savedTickets(page);
-  await page.getByRole('button', { name: 'Quero ajuda da IA enquanto aguardo', exact: true }).click();
   await sendClientMessage(page, 'Qual é a cor da lua?');
-  await expect(page.locator('#client-chat')).toContainText('Não tenho uma resposta segura para esse ponto');
-  expect(await savedTickets(page)).toEqual(before);
-  await expect(page.getByRole('button', { name: 'Sim, encerrar este protocolo', exact: true })).toHaveCount(
-    0,
-  );
+  await expect(page.locator('#client-chat')).toContainText('Não tenho uma resposta confirmada');
+  expect(await savedTickets(page)).toHaveLength(1);
+  await expect(page.locator('#client-input')).toBeDisabled();
 });
 
-test('fora do horário mantém retorno simulado e golpe interrompe a consulta opcional', async ({ page }) => {
+test('fora do horário preserva retorno e controle de segurança permanece acessível na fila', async ({
+  page,
+}) => {
   await loginClient(page, 'C-0002');
   await page.getByLabel('Relógio da demonstração · Brasília').fill('2026-11-18T23:00');
   await page.getByRole('button', { name: '♧ Falar com uma pessoa', exact: true }).click();
   await expect(page.locator('#client-chat')).toContainText('Agora estamos fora do horário humano');
   const before = await savedTickets(page);
-  await page.getByRole('button', { name: 'Quero ajuda da IA enquanto aguardo', exact: true }).click();
-  await sendClientMessage(page, 'Um gerente me ligou pedindo o código do SMS');
+  await page.getByRole('button', { name: 'Suspeita de golpe', exact: true }).click();
   await expect(page.locator('#waiting-strip')).toContainText('Segurança 24h');
   expect(await savedTickets(page)).toEqual([{ ...before[0], priority: 'Segurança 24h' }]);
-  await expect(page.getByRole('button', { name: 'Ajuda opcional da IA', exact: true })).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'Isso resolveu minha dúvida', exact: true })).toHaveCount(0);
+  await expect(page.locator('#client-input')).toBeDisabled();
 });
 
 test('Marta vê conta e todas as posições separadas do resgate e entende a aplicação de 20 mil', async ({
@@ -369,7 +329,10 @@ test('Marta vê conta e todas as posições separadas do resgate e entende a apl
   await expect(overview).toContainText(/40\.000,00/);
   await expect(overview).toContainText('Não somei esses pedidos ao saldo nem aos investimentos');
   await expect(overview).toContainText('18/11/2026');
-  await expect(overview).toContainText('não é uma consulta em tempo real');
+  await expect(page.locator('.account-card')).toContainText('SUA CONTA DE DEMONSTRAÇÃO');
+  await expect
+    .poll(() => page.locator('.account-source').evaluate((el) => getComputedStyle(el, '::after').content))
+    .toContain('não ao vivo');
   await expect(overview.locator('details')).not.toHaveAttribute('open', '');
   await expect(overview.getByRole('link').first()).toBeHidden();
   await overview.locator('summary').click();

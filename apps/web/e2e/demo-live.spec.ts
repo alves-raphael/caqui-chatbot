@@ -3,6 +3,21 @@ import { expect, test } from '@playwright/test';
 test.use({ storageState: { cookies: [], origins: [] } });
 
 test.beforeEach(async ({ page }) => {
+  await page.route('**/demo/flow', async (route) => {
+    const body = route.request().postDataJSON() as { event: string };
+    await route.fulfill({
+      json: {
+        state: body.event === 'assume' ? 'human' : body.event === 'close' ? 'closed' : 'queued',
+        availability: {
+          available: true,
+          nextWindow: null,
+          checkedAt: '2026-10-31T15:00:00Z',
+          timezone: 'America/Sao_Paulo',
+          message: 'Horário de atendimento conferido nesta fixture.',
+        },
+      },
+    });
+  });
   await page.route('**/demo/session', async (route) => {
     const body = route.request().postDataJSON() as { role: string; clientId: string };
     await route.fulfill({
@@ -53,6 +68,7 @@ test('chat local mostra resposta do modelo e o rascunho Terra ainda exige revis�
   await frame.getByRole('button', { name: '⇥ Sair / trocar perfil', exact: true }).click();
   await frame.getByRole('button', { name: 'Entrar como atendente →', exact: true }).click();
   await frame.getByRole('button', { name: 'Assumir atendimento · simulação', exact: true }).click();
+  await expect(frame.locator('#ticket-heading')).toContainText('Com Jonas');
   await page.getByRole('combobox', { name: 'Modelo da IA local' }).selectOption('terra');
   await frame.getByRole('button', { name: 'Gerar rascunho com IA local', exact: true }).click();
   await expect(frame.getByRole('textbox', { name: 'Rascunho para o cliente', exact: true })).toHaveValue(

@@ -17,6 +17,70 @@
               "schema": {
                 "additionalProperties": false,
                 "properties": {
+                  "action": {
+                    "enum": [
+                      "investments",
+                      "redemption",
+                      "documents",
+                      "transfer"
+                    ],
+                    "type": "string"
+                  },
+                  "caseContext": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "messages": {
+                        "items": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "role": {
+                              "enum": [
+                                "user",
+                                "assistant",
+                                "human",
+                                "system"
+                              ],
+                              "type": "string"
+                            },
+                            "text": {
+                              "maxLength": 1000,
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "role",
+                            "text"
+                          ],
+                          "type": "object"
+                        },
+                        "maxItems": 12,
+                        "type": "array"
+                      },
+                      "pending": {
+                        "maxLength": 1000,
+                        "type": "string"
+                      },
+                      "protocol": {
+                        "maxLength": 80,
+                        "type": "string"
+                      },
+                      "research": {
+                        "items": {
+                          "maxLength": 1000,
+                          "type": "string"
+                        },
+                        "maxItems": 5,
+                        "type": "array"
+                      }
+                    },
+                    "required": [
+                      "protocol",
+                      "messages",
+                      "research",
+                      "pending"
+                    ],
+                    "type": "object"
+                  },
                   "message": {
                     "maxLength": 1000,
                     "minLength": 1,
@@ -28,6 +92,10 @@
                       "luna",
                       "terra"
                     ],
+                    "type": "string"
+                  },
+                  "operationId": {
+                    "pattern": "^OP-\\d+$",
                     "type": "string"
                   }
                 },
@@ -54,7 +122,8 @@
                     "handoff": {
                       "enum": [
                         "support",
-                        "specialist"
+                        "specialist",
+                        "security"
                       ],
                       "type": "string"
                     },
@@ -72,6 +141,38 @@
                     },
                     "notice": {
                       "type": "string"
+                    },
+                    "quickReplies": {
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "action": {
+                            "enum": [
+                              "investments",
+                              "redemption",
+                              "documents",
+                              "transfer"
+                            ],
+                            "type": "string"
+                          },
+                          "label": {
+                            "maxLength": 100,
+                            "minLength": 1,
+                            "type": "string"
+                          },
+                          "operationId": {
+                            "pattern": "^OP-\\d+$",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "action",
+                          "label"
+                        ],
+                        "type": "object"
+                      },
+                      "maxItems": 6,
+                      "type": "array"
                     },
                     "sources": {
                       "items": {
@@ -164,6 +265,39 @@
             "description": "Default Response"
           },
           "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "details": {},
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "409": {
             "content": {
               "application/json": {
                 "schema": {
@@ -278,6 +412,70 @@
               "schema": {
                 "additionalProperties": false,
                 "properties": {
+                  "action": {
+                    "enum": [
+                      "investments",
+                      "redemption",
+                      "documents",
+                      "transfer"
+                    ],
+                    "type": "string"
+                  },
+                  "caseContext": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "messages": {
+                        "items": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "role": {
+                              "enum": [
+                                "user",
+                                "assistant",
+                                "human",
+                                "system"
+                              ],
+                              "type": "string"
+                            },
+                            "text": {
+                              "maxLength": 1000,
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "role",
+                            "text"
+                          ],
+                          "type": "object"
+                        },
+                        "maxItems": 12,
+                        "type": "array"
+                      },
+                      "pending": {
+                        "maxLength": 1000,
+                        "type": "string"
+                      },
+                      "protocol": {
+                        "maxLength": 80,
+                        "type": "string"
+                      },
+                      "research": {
+                        "items": {
+                          "maxLength": 1000,
+                          "type": "string"
+                        },
+                        "maxItems": 5,
+                        "type": "array"
+                      }
+                    },
+                    "required": [
+                      "protocol",
+                      "messages",
+                      "research",
+                      "pending"
+                    ],
+                    "type": "object"
+                  },
                   "message": {
                     "maxLength": 1000,
                     "minLength": 1,
@@ -289,6 +487,10 @@
                       "luna",
                       "terra"
                     ],
+                    "type": "string"
+                  },
+                  "operationId": {
+                    "pattern": "^OP-\\d+$",
                     "type": "string"
                   }
                 },
@@ -315,7 +517,8 @@
                     "handoff": {
                       "enum": [
                         "support",
-                        "specialist"
+                        "specialist",
+                        "security"
                       ],
                       "type": "string"
                     },
@@ -333,6 +536,38 @@
                     },
                     "notice": {
                       "type": "string"
+                    },
+                    "quickReplies": {
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "action": {
+                            "enum": [
+                              "investments",
+                              "redemption",
+                              "documents",
+                              "transfer"
+                            ],
+                            "type": "string"
+                          },
+                          "label": {
+                            "maxLength": 100,
+                            "minLength": 1,
+                            "type": "string"
+                          },
+                          "operationId": {
+                            "pattern": "^OP-\\d+$",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "action",
+                          "label"
+                        ],
+                        "type": "object"
+                      },
+                      "maxItems": 6,
+                      "type": "array"
                     },
                     "sources": {
                       "items": {
@@ -457,6 +692,39 @@
             },
             "description": "Default Response"
           },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "details": {},
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
           "429": {
             "content": {
               "application/json": {
@@ -525,6 +793,312 @@
           }
         },
         "summary": "Draft a reply for agent review",
+        "tags": [
+          "local-demo"
+        ]
+      }
+    },
+    "/demo/flow": {
+      "post": {
+        "operationId": "transitionDemoConversation",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "clientSession": {
+                    "maxLength": 64,
+                    "type": "string"
+                  },
+                  "event": {
+                    "enum": [
+                      "queue",
+                      "security",
+                      "assume",
+                      "close"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "event"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "availability": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "available": {
+                          "type": "boolean"
+                        },
+                        "calendarKnown": {
+                          "type": "boolean"
+                        },
+                        "checkedAt": {
+                          "type": "string"
+                        },
+                        "holiday": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "nextWindow": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "timezone": {
+                          "enum": [
+                            "America/Sao_Paulo"
+                          ],
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "calendarKnown",
+                        "holiday",
+                        "available",
+                        "nextWindow",
+                        "checkedAt",
+                        "timezone",
+                        "message"
+                      ],
+                      "type": "object"
+                    },
+                    "state": {
+                      "enum": [
+                        "bot",
+                        "helpOptional",
+                        "queued",
+                        "human",
+                        "closed"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "state",
+                    "availability"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "details": {},
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "details": {},
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "details": {},
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "details": {},
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "details": {},
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "details": {},
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          }
+        },
+        "summary": "Queue a demonstration conversation or let the matching demo agent assume it",
         "tags": [
           "local-demo"
         ]
@@ -675,6 +1249,39 @@
             "description": "Default Response"
           },
           "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "details": {},
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "409": {
             "content": {
               "application/json": {
                 "schema": {
@@ -890,6 +1497,39 @@
             "description": "Default Response"
           },
           "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "details": {},
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "409": {
             "content": {
               "application/json": {
                 "schema": {
