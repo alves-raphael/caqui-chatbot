@@ -61,3 +61,9 @@ python3 caqui-invest/ferramentas/checar_respostas.py docs/prototipo/validacao/ch
 São 11 perguntas selecionadas, não aprovação das 40. A interface usou o relógio fixo do case às 10h; PT-21 verifica o encaminhamento de segurança, mas não simula o relógio às 23h. O texto e a ação foram revisados pelo assistente; isso não constitui validação humana independente. A revisão encontrou e corrigiu expressões de fraude (suporte remoto, ligação pedindo senha) que não interrompiam o fluxo, e pedidos de indicação que caíam na resposta genérica.
 
 Uma chamada real Luna confirmou que o resgate de ações de Rafael usa OP-10008 (R$ 2.200, previsão 19/11/2026), sem confundir com o multimercado OP-10007. Consulta ambígua agora pergunta qual produto; fraude e tentativa de consultar outra conta foram recusadas por regra, sem chamada paga. Fontes e status continuam distintos de confirmação de pagamento.
+
+### Pré-triagem conectada
+
+A validação direta em `/demo` confirmou dois caminhos com respostas reais Luna: Marta pede uma pessoa, mantém prioridade, aceita ajuda opcional, informa a dúvida, recebe a consulta e decide continuar aguardando; Jonas recebe a pergunta, pesquisa atualizada, fontes e pendências. Ao assumir, novas mensagens não geram resposta automática. Rafael reaproveita uma pergunta anterior, recebe a resposta conectada, sinaliza solução e só encerra após uma confirmação adicional.
+
+A correção removeu a exclusão por idade da ajuda opcional em protocolos comuns (prioridade preservada; fraude/coação continuam fora da triagem), conectou a consulta reaproveitada ao modelo e sincronizou a resposta com a pesquisa do copiloto. Duas respostas da rodada concluída custaram US$ 0,000119. Uma repetição anterior não recebeu a chamada no prazo; a rodada seguinte passou com página e API HTTP 200. Não foi feita garantia de disponibilidade nem validação em celular físico.

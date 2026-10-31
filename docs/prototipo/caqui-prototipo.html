@@ -4053,8 +4053,6 @@
           !!t &&
           !humanOwns(t) &&
           t.handling !== 'closed' &&
-          current().idade < 60 &&
-          t.priority === 'Normal' &&
           ['human', 'missing', 'delay', 'unknown', 'limit'].includes(t.kind)
         );
       }
@@ -4298,6 +4296,7 @@
           [],
           { ticket: t.id, action: 'wait-result' },
         );
+        requestLiveAnswer(input, before);
         renderAgent();
       }
       function assumeTicket(t) {
@@ -5214,6 +5213,15 @@
                 item.time === message.time,
             );
             if (recorded) Object.assign(recorded, message);
+            const research = ticket.waitResearch?.findLast((item) =>
+              item.text.startsWith(expected.originalText),
+            );
+            if (research)
+              Object.assign(research, {
+                text: message.text,
+                refs: reply.sources,
+                liveModel: message.liveModel,
+              });
             ticket.revision++;
           }
           save();
@@ -5236,18 +5244,18 @@
         },
       };
       const sendOffline = send;
-      send = (input, forced) => {
-        const before = state.messages.length;
-        sendOffline(input, forced);
+      function requestLiveAnswer(input, before) {
         if (sessionRole !== 'client' || humanOwns(activeTicket())) return;
         const index = state.messages.findIndex(
           (message, i) =>
             i >= before &&
             message.role === 'assistant' &&
+            !message.liveRequested &&
             !message.ticket &&
             !['fraud', 'advice'].includes(message.action),
         );
         if (index < 0) return;
+        state.messages[index].liveRequested = true;
         window.dispatchEvent(
           new CustomEvent('caqui:question', {
             detail: {
@@ -5259,6 +5267,11 @@
             },
           }),
         );
+      }
+      send = (input, forced) => {
+        const before = state.messages.length;
+        sendOffline(input, forced);
+        requestLiveAnswer(input, before);
       };
     </script>
   </body>
