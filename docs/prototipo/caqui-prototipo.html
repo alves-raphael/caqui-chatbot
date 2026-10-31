@@ -805,6 +805,35 @@
       .agent-conversation .message {
         max-width: 100%;
       }
+      .agent-manual {
+        flex-shrink: 0;
+        padding: 10px 14px;
+        border-top: 1px solid var(--line);
+      }
+      .agent-manual label {
+        display: block;
+        font-size: 12px;
+        margin-bottom: 5px;
+      }
+      .agent-manual textarea {
+        width: 100%;
+        min-height: 44px;
+        max-height: 100px;
+        resize: vertical;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 8px;
+        font: inherit;
+        font-size: 13px;
+      }
+      .agent-manual small {
+        font-size: 10px;
+        max-width: 58%;
+      }
+      .agent-manual .primary-button {
+        font-size: 11px;
+        padding: 9px;
+      }
       .agent-actions {
         border-top: 1px solid var(--line);
         padding: 16px;
@@ -831,7 +860,12 @@
         color: var(--green);
       }
       #copilot-content {
+        scroll-padding-block: 16px;
         padding: 18px;
+      }
+      #approve,
+      #use-draft {
+        scroll-margin-block: 16px;
       }
       .copilot-meta {
         display: flex;
@@ -2573,6 +2607,7 @@
               <div class="escape-actions">
                 <button id="help-options" class="help-main">Ver opções de ajuda</button
                 ><button id="human-btn">♧ Falar com uma pessoa</button
+                ><button id="security-btn">Suspeita de golpe</button
                 ><button data-route="complaint">Reclamar</button
                 ><button data-route="close">Encerrar conta</button>
               </div>
@@ -2653,6 +2688,22 @@
             <section class="card agent-conversation">
               <div id="ticket-heading" class="panel-heading compact"><h2>Selecione um atendimento</h2></div>
               <div id="agent-chat" class="chat-body" tabindex="0" role="log" aria-live="polite"></div>
+              <form id="agent-form" class="agent-manual">
+                <label for="agent-input">Resposta do atendente</label>
+                <textarea
+                  id="agent-input"
+                  rows="2"
+                  maxlength="2000"
+                  placeholder="Escreva sua resposta. O copiloto é opcional."
+                  disabled
+                ></textarea>
+                <div class="row">
+                  <small id="agent-send-status" role="status">Selecione e assuma um atendimento.</small
+                  ><button id="agent-send" class="primary-button" type="submit" disabled>
+                    Enviar resposta · simulação
+                  </button>
+                </div>
+              </form>
               <div class="agent-actions">
                 <button id="new-message" class="outline-button">Simular nova mensagem do cliente</button
                 ><small>Uma nova mensagem desatualiza o copiloto.</small>
@@ -3660,8 +3711,11 @@
         'use strict';
         function sanitize(v) {
           return String(v)
-            .replace(/\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b/g, '***.***.***-**')
-            .replace(/((?:senha|token|c[oó]digo(?: do SMS)?)\s*(?:é|:|=)\s*)\S+/gi, '$1[oculto]');
+            .replace(/\b\d{3}[.\s]?\d{3}[.\s]?\d{3}[-\s]?\d{2}\b/g, '***.***.***-**')
+            .replace(
+              /(\b(?:senha|token|c[oó]digo(?:\s+(?:do\s+)?SMS)?)\b(?:\s*(?:é|eh|:|=)\s*|\s+))(?!(?:pelo|pela|por|para|no|na|do|da|de|com|em|e|ou|nem|a|o|uma|um|sms|foi|solicitada|solicitado|pedida|pedido|ao|aos|não|nao)\b)([^\s]+(?:[ \t]+\d+)*)/gi,
+              '$1[oculto]',
+            );
         }
         function normalized(s) {
           return s
@@ -3713,19 +3767,20 @@
         function route(input) {
           let s = normalized(input);
           if (
-            /golpe|gerente.*(codigo|sms|token|senha)|lig(?:ou|aram).*?(codigo|sms|token|senha)|pedi(?:u|ram|ndo).*?(codigo|sms|token|senha)|ja.*passei.*codigo|(?:acesso|suporte) remoto|pix.*teste/.test(
+            /golpe|fraude|(?:assessor|gerente|banco|suporte).*?(?:pedi|solicit|requisit|quer).*?(?:codigo|sms|token|senha)|(?:pedi|solicit|requisit).*?(?:codigo|sms|token|senha)|gerente.*(codigo|sms|token|senha)|lig(?:ou|aram).*?(codigo|sms|token|senha)|pedi(?:u|ram|ndo).*?(codigo|sms|token|senha)|ja.*passei.*codigo|(?:acesso|suporte) remoto|pix.*teste/.test(
               s,
             )
           )
             return 'fraud';
-          if (/ignore.*regra|outro cliente|c-00(?!07)|fingir|base interna|prompt|instrucoes internas/.test(s))
+          if (/ignore.*regra|outro cliente|fingir|base interna|prompt|instrucoes internas/.test(s))
             return 'injection';
           if (
-            /sobrinho|pression|idos|tenho (6\d|[7-9]\d)|confus|nao consigo entender|nao estou entendendo/.test(
+            /sobrinho|pression|\bidos[oa]s?\b|tenho (6\d|[7-9]\d)|confus|nao consigo entender|nao estou entendendo/.test(
               s,
             )
           )
             return 'vulnerable';
+          if (/fgc|garantia/.test(s)) return 'fgc';
           if (/reclam/.test(s)) return 'complaint';
           if (/encerr|cancelar.*conta/.test(s)) return 'close';
           if (/atendente|pessoa|humano/.test(s)) return 'human';
@@ -3864,6 +3919,7 @@
         ['KB-006'],
       ];
       const freshState = () => ({
+        conversationId: crypto.randomUUID(),
         messages: [],
         tickets: [],
         selected: null,
@@ -3873,7 +3929,15 @@
         view: 'client',
         sequence: 1,
         adviceOffers: 0,
+        phase: 'bot',
       });
+      function scrub(value) {
+        if (typeof value === 'string') return R.sanitize(value);
+        if (Array.isArray(value)) return value.map(scrub);
+        if (value && typeof value === 'object')
+          return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, scrub(v)]));
+        return value;
+      }
       let profiles = {},
         storageOK = true;
       for (const c of D.clients) {
@@ -3881,7 +3945,7 @@
         try {
           let raw = localStorage.getItem('caqui-demo-v2:' + c.id);
           if (raw) {
-            let parsed = JSON.parse(raw);
+            let parsed = scrub(JSON.parse(raw));
             if (Array.isArray(parsed.messages) && Array.isArray(parsed.tickets) && parsed.clientId === c.id)
               profiles[c.id] = {
                 ...freshState(),
@@ -3899,7 +3963,7 @@
         try {
           localStorage.setItem(
             'caqui-demo-v2:' + currentClientId,
-            JSON.stringify({ ...state, clientId: currentClientId }),
+            JSON.stringify(scrub({ ...state, clientId: currentClientId })),
           );
           storageOK = true;
           return true;
@@ -3908,10 +3972,51 @@
           return false;
         }
       }
+      function priorityReason(t) {
+        if (t.kind === 'fraud') return 'Suspeita de golpe';
+        if (t.kind === 'vulnerable') return 'Sinal de vulnerabilidade';
+        if (D.clients.find((c) => c.id === t.clientId)?.idade >= 60) return 'Pessoa com 60 anos ou mais';
+        return 'Atendimento geral';
+      }
+      function openedLabel(t) {
+        return t.createdAt && Number.isFinite(Date.parse(t.createdAt))
+          ? new Intl.DateTimeFormat('pt-BR', {
+              dateStyle: 'short',
+              timeStyle: 'short',
+              timeZone: 'America/Sao_Paulo',
+            }).format(new Date(t.createdAt)) + ' BRT'
+          : 'Data real de abertura não registrada';
+      }
       function allTickets() {
+        const rank = (t) => (t.kind === 'fraud' ? 0 : t.priority === 'Prioritário' ? 1 : 2);
+        const opened = (t) =>
+          t.createdAt && Number.isFinite(Date.parse(t.createdAt))
+            ? Date.parse(t.createdAt)
+            : Number.POSITIVE_INFINITY;
         return D.clients
           .flatMap((c) => profiles[c.id].tickets)
-          .sort((a, b) => b.created.localeCompare(a.created));
+          .sort(
+            (a, b) =>
+              Number(a.handling === 'closed') - Number(b.handling === 'closed') ||
+              rank(a) - rank(b) ||
+              (opened(a) === opened(b) ? 0 : opened(a) - opened(b)) ||
+              a.id.localeCompare(b.id),
+          );
+      }
+      function phase() {
+        const t = activeTicket();
+        return t
+          ? t.handling === 'closed'
+            ? 'closed'
+            : humanOwns(t)
+              ? 'human'
+              : 'queued'
+          : state.phase === 'helpOptional'
+            ? 'helpOptional'
+            : 'bot';
+      }
+      function notifyFlow(event) {
+        window.dispatchEvent(new CustomEvent('caqui:flow', { detail: { event, clientId: currentClientId } }));
       }
       function stamp() {
         return $('#demo-clock').value.replace('T', ' ') + ' BRT';
@@ -3938,11 +4043,36 @@
           })
           .join('');
       }
+      const quickQuestions = {
+        investments: 'Quero ver meus investimentos.',
+        redemption: 'Quero acompanhar meu resgate.',
+        documents: 'Onde encontro meu informe de rendimentos?',
+        transfer: 'Quero consultar minha transferência.',
+      };
+      function quickReplyHTML(m) {
+        const ticket = activeTicket();
+        if (
+          sessionRole !== 'client' ||
+          humanOwns(ticket) ||
+          (ticket && phase() !== 'bot' && phase() !== 'helpOptional')
+        )
+          return '';
+        return m.quickReplies?.length
+          ? '<div class="wait-choices" aria-label="Próximas consultas">' +
+              m.quickReplies
+                .map(
+                  (q, i) =>
+                    `<button data-quick-message="${state.messages.indexOf(m)}" data-quick-choice="${i}" ${m.quickUsed ? 'disabled' : ''}>${esc(q.label)}</button>`,
+                )
+                .join('') +
+              '</div>'
+          : '';
+      }
       function messageHTML(m) {
-        return `<article class="message ${m.role}"><div class="message-name">${m.role === 'user' ? 'Cliente · ' + esc(firstName()) : m.role === 'human' ? 'Atendente · envio simulado' : m.role === 'system' ? 'Atualização da demonstração' : m.liveModel ? 'PatricIA · IA conectada · ' + esc(m.liveModel) : 'PatricIA · IA simulada'} <span>· ${esc(m.time?.slice(11, 16) || '10:00')}</span></div><div class="bubble">${esc(m.text)}${m.details ? `<details class="answer-details"><summary>Ver detalhes do pedido</summary><p>${esc(m.details)}</p></details>` : ''}${m.refs?.length ? `<details class="sources message-sources"><summary>Ver fontes desta resposta</summary>${sourceHTML(m.refs)}</details>` : ''}${m.action === 'fraud' ? '<button class="inline-action" data-block>Simular bloqueio de acesso</button>' : ''}${m.action === 'advice' && sessionRole === 'client' ? '<div class="advice-actions"><button data-advice-education>Entender as diferenças</button><button data-advice-human>Falar com especialista</button></div>' : ''}${m.action === 'money-overview' && sessionRole === 'client' ? '<div class="wait-choices"><button data-money="investments">Ver meus investimentos</button><button data-money="resgate">Entender meu resgate</button></div>' : ''}${waitActionHTML(m)}${m.ticket ? `<span class="record-label">Contexto salvo no protocolo ${esc(m.ticket)}.</span>` : ''}</div></article>`;
+        return `<article class="message ${m.role}"><div class="message-name">${m.role === 'user' ? 'Cliente · ' + esc(firstName()) : m.role === 'human' ? 'Atendente · envio simulado' : m.role === 'system' ? 'Atualização da demonstração' : m.liveModel ? 'PatricIA · IA conectada · ' + esc(m.liveModel) : 'PatricIA · IA simulada'} <span>· ${esc(m.time?.slice(11, 16) || '10:00')}</span></div><div class="bubble">${esc(m.text)}${m.details ? `<details class="answer-details"><summary>Ver detalhes do pedido</summary><p>${esc(m.details)}</p></details>` : ''}${m.refs?.length ? `<details class="sources message-sources"><summary>Ver fontes desta resposta</summary>${sourceHTML(m.refs)}</details>` : ''}${m.action === 'fraud' ? '<button class="inline-action" data-block>Simular bloqueio de acesso</button>' : ''}${m.action === 'advice' && sessionRole === 'client' && !activeTicket() ? '<div class="advice-actions"><button data-advice-education>Entender as diferenças</button><button data-advice-human>Falar com especialista</button></div>' : ''}${m.action === 'money-overview' && !m.quickReplies?.length && sessionRole === 'client' && !activeTicket() ? '<div class="wait-choices"><button data-money="investments">Ver meus investimentos</button><button data-money="resgate">Entender meu resgate</button></div>' : ''}${waitActionHTML(m)}${quickReplyHTML(m)}${m.ticket ? `<span class="record-label">Contexto salvo no protocolo ${esc(m.ticket)}.</span>` : ''}</div></article>`;
       }
       function addMessage(role, text, refs = [], extra = {}) {
-        let m = { role, text: R.sanitize(text), refs, time: stamp(), ...extra };
+        let m = { role, text: R.sanitize(text), refs, time: stamp(), ...scrub(extra) };
         state.messages.push(m);
         if (state.activeTicket) {
           let t = state.tickets.find((x) => x.id === state.activeTicket);
@@ -3950,6 +4080,7 @@
             t.messages.push({ ...m });
             t.revision++;
             t.updated = stamp();
+            t.updatedAt = new Date().toISOString();
           }
         }
         save();
@@ -3957,6 +4088,19 @@
         return m;
       }
       function renderClient() {
+        state.phase = phase();
+        const locked = ['queued', 'closed'].includes(state.phase);
+        $('#client-input').disabled = locked;
+        $('#client-form button').disabled = locked;
+        $('#client-input').placeholder =
+          state.phase === 'queued'
+            ? 'Aguarde o atendente assumir este protocolo…'
+            : state.phase === 'human'
+              ? 'Escreva para o atendente…'
+              : 'Conte o que você precisa, sem dados sensíveis…';
+        $('#quick-prompts').hidden = locked || state.phase === 'human';
+        $('#help-options').disabled = locked || state.phase === 'human';
+        $('#human-btn').disabled = locked || state.phase === 'human';
         renderWaitingStrip();
         let box = $('#client-chat');
         box.innerHTML = state.messages.map(messageHTML).join('');
@@ -3989,7 +4133,10 @@
             return;
           }
           if (existing.kind === 'vulnerable' && kind !== 'fraud') kind = 'vulnerable';
-          existing.waitStage = allowWait ? 'disabled' : 'unavailable';
+          existing.waitStage = 'unavailable';
+          existing.handling = 'waiting';
+          state.phase = 'queued';
+          notifyFlow('queue');
           existing.kind = kind;
           existing.reason = reason;
           existing.priority =
@@ -4029,14 +4176,21 @@
           revision: 1,
           copilotVersion: 0,
           created: stamp(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
           updated: stamp(),
           refs,
           handling: 'waiting',
-          waitStage: allowWait ? 'none' : 'unavailable',
-          waitResearch: [],
+          waitStage: 'unavailable',
+          waitResearch: state.messages
+            .filter((m) => m.role === 'assistant' && m.refs?.length && !m.ticket)
+            .slice(-5)
+            .map((m) => ({ text: m.text, refs: [...m.refs] })),
         };
         state.tickets.unshift(t);
         state.activeTicket = id;
+        state.phase = 'queued';
+        notifyFlow('queue');
         state.selected = id;
         let persisted = save();
         let schedule = urgent
@@ -4046,7 +4200,7 @@
             : 'Agora estamos fora do horário humano. Retorno previsto a partir das 8h; demandas não urgentes têm prazo de até 7 dias corridos.';
         let text = `${persisted ? 'Protocolo salvo neste navegador' : 'Não foi possível salvar de forma persistente; protocolo disponível apenas nesta sessão'}: ${id}.\n\n${reason}\n\n${schedule}${!urgent && businessOpen() ? ' Demandas não urgentes: até 7 dias corridos.' : ''}\n\nO histórico sanitizado acompanha o protocolo. Nenhuma pessoa real foi acionada.`;
         addMessage('assistant', text, refs, { ticket: id, action: urgent ? 'fraud' : null });
-        if (allowWait && waitEligible(t)) offerWaitHelp(t);
+        // A final handoff locks the conversation until the agent assumes it.
         renderAgent();
       }
 
@@ -4058,6 +4212,7 @@
       }
       function waitEligible(t) {
         return (
+          false &&
           !!t &&
           !humanOwns(t) &&
           t.handling !== 'closed' &&
@@ -4098,7 +4253,7 @@
         let t = activeTicket();
         box.hidden = sessionRole !== 'client' || !t;
         if (box.hidden) return;
-        box.innerHTML = `<span><b>${esc(t.id)}</b> · ${humanOwns(t) ? 'Jonas assumiu · simulado' : t.kind === 'fraud' ? 'Segurança 24h · sem fila simulada' : esc(t.status)}</span>${waitEligible(t) ? '<button id="wait-resume">Ajuda opcional da IA</button>' : ''}`;
+        box.innerHTML = `<span><b>${esc(t.id)}</b> · ${humanOwns(t) ? 'Jonas assumiu · simulado' : t.kind === 'fraud' ? 'Segurança 24h · sem fila simulada' : esc(t.status)}</span>${phase() === 'queued' ? '<span> Aguarde o atendente entrar no chat.</span>' : ''}`;
         if ($('#wait-resume')) $('#wait-resume').onclick = () => offerWaitHelp(t);
       }
       function offerWaitHelp(t) {
@@ -4222,7 +4377,7 @@
         if (kind === 'moneyoverview' || kind === 'investments') moneyOverview(kind === 'investments');
         else if (kind === 'application-detail') {
           let op = findApplicationQuestion(input);
-          if (op) operation(op.id_operacao);
+          if (op) operation(op.id_operacao, input);
         } else if (kind === 'operation') {
           let opId = requestedId;
           const norm = R.normalized(input);
@@ -4244,7 +4399,7 @@
           operation(opId, input);
         } else if (kind === 'application') {
           let op = ownOperations().find((o) => o.tipo === 'aplicacao');
-          if (op) operation(op.id_operacao);
+          if (op) operation(op.id_operacao, input);
           else
             addMessage(
               'assistant',
@@ -4308,9 +4463,21 @@
         requestLiveAnswer(input, before);
         renderAgent();
       }
-      function assumeTicket(t) {
+      async function assumeTicket(t) {
         if (sessionRole !== 'agent' || t.handling === 'closed' || humanOwns(t)) return;
+        if (
+          window.CaquiSyncFlow &&
+          !(await window.CaquiSyncFlow('assume', { role: 'agent', clientId: t.clientId }))
+        ) {
+          toast('Não foi possível confirmar a entrada do atendente. Tente novamente.');
+          return;
+        }
+        if (sessionRole !== 'agent' || currentClientId !== t.clientId || state.selected !== t.id) {
+          toast('O atendimento selecionado mudou. Volte ao caso para confirmar a entrada.');
+          return;
+        }
         t.handling = 'human';
+        state.phase = 'human';
         t.waitStage = 'disabled';
         t.status = 'Com Jonas · simulado';
         t.waitOutcome =
@@ -4326,6 +4493,7 @@
         t.messages.push(m);
         t.revision++;
         t.updated = stamp();
+        t.updatedAt = new Date().toISOString();
         if (state.activeTicket === t.id) state.messages.push({ ...m });
         generate(t);
         save();
@@ -4417,16 +4585,30 @@
       function operation(requested, hint = '') {
         const normalizedHint = R.normalized(hint);
         const product = [
-          [/acoes|acao\b/, 'ACOES'],
+          [/\bacoes\b|\bacao\b/, 'ACOES'],
           [/multimercado/, 'FUNDO-MM'],
           [/renda fixa/, 'FUNDO-RF'],
           [/tesouro/, 'TESOURO'],
           [/\blci\b/, 'LCI'],
           [/\bcdb\b/, 'CDB'],
         ].find(([pattern]) => pattern.test(normalizedHint))?.[1];
-        const matching = ownOperations().filter(
-          (o) => o.tipo === 'resgate' && (!product || o.produto.startsWith(product)),
-        );
+        const amountMatch =
+          normalizedHint.match(
+            /(?:r\$\s*|(?:resgate|aplicacao|pedido|transferencia)\s+de\s+)(\d{1,3}(?:\.\d{3})+(?:,\d{2})?|\d+(?:,\d{2})?)\s*(mil)?/,
+          ) ?? normalizedHint.match(/(\d{1,3}(?:\.\d{3})+(?:,\d{2})?|\d+(?:,\d{2})?)\s*(mil|reais)\b/);
+        const amount = amountMatch
+          ? Number(amountMatch[1].replaceAll('.', '').replace(',', '.')) *
+            (amountMatch[2] === 'mil' ? 1000 : 1)
+          : null;
+        const day = normalizedHint.match(/\b(\d{2})\/(\d{2})(?:\/(\d{4}))?\b/);
+        const matches = (o) =>
+          (!product || o.produto.startsWith(product)) &&
+          (amount === null || Number(o.valor_brl) === amount) &&
+          (!day ||
+            (o.pedido_em.slice(8, 10) === day[1] &&
+              o.pedido_em.slice(5, 7) === day[2] &&
+              (!day[3] || o.pedido_em.slice(0, 4) === day[3])));
+        const matching = ownOperations().filter((o) => o.tipo === 'resgate' && matches(o));
         if (!requested && matching.length > 1) {
           addMessage(
             'assistant',
@@ -4435,11 +4617,13 @@
           );
           return;
         }
-        let op = requested ? ownOperations().find((o) => o.id_operacao === requested) : matching[0];
+        let op = requested
+          ? ownOperations().find((o) => o.id_operacao === requested && matches(o))
+          : matching[0];
         if (!op) {
           handoff(
             'missing',
-            'Não encontrei essa operação nos registros desta persona. Não vou consultar dados de outra pessoa.',
+            'Não encontrei uma operação que corresponda ao produto, valor e data informados. Vou encaminhar o contexto para conferência, sem trocar por outro pedido.',
             ['KB-008', 'KB-025'],
           );
           return;
@@ -4521,7 +4705,11 @@
       }
       function send(input, forced) {
         if (sessionRole !== 'client') return;
-        input = input.trim();
+        if (['queued', 'closed'].includes(phase()) && !['fraud', 'complaint', 'close'].includes(forced)) {
+          toast('Aguarde o atendente assumir. O protocolo e o histórico estão preservados.');
+          return;
+        }
+        input = R.sanitize(input).trim();
         if (!input) return;
         let kind = forced || R.route(input);
         if (kind === 'cutoff' && /\bcdb\b/i.test(input)) kind = 'liquidity';
@@ -4601,6 +4789,13 @@
           renderAgent();
           return;
         }
+        if (state.steps > 5) {
+          handoff(
+            'limit',
+            'Chegamos ao limite de cinco passos. Uma pessoa continuará com o histórico, sem repetir orientações.',
+          );
+          return;
+        }
         if (kind === 'advice') {
           investmentConversation(input);
           return;
@@ -4640,7 +4835,7 @@
           return;
         }
         if (kind === 'application-detail') {
-          operation(applicationMention.id_operacao);
+          operation(applicationMention.id_operacao, input);
           return;
         }
         if (kind === 'operation') {
@@ -4657,7 +4852,7 @@
         }
         if (kind === 'application') {
           let op = ownOperations().find((o) => o.tipo === 'aplicacao');
-          if (op) operation(op.id_operacao);
+          if (op) operation(op.id_operacao, input);
           else
             handoff(
               'missing',
@@ -4807,7 +5002,7 @@
         }
         if (t.waitResearch?.length) {
           let last = t.waitResearch.at(-1);
-          pending += ' Pré-triagem: ' + (t.waitOutcome || 'cliente ainda não confirmou solução') + '.';
+          pending += ' Consulta anterior: ' + (t.waitOutcome || 'cliente ainda não confirmou solução') + '.';
           next = 'Continuar a partir da consulta já feita, sem repetir perguntas. ' + next;
           internal = [...new Set([...internal, ...t.waitResearch.flatMap((x) => x.refs || [])])];
         }
@@ -4820,8 +5015,8 @@
             `Cliente: ${current().nome} · ${currentClientId} · CPF ${current().cpf_mascarado}.`,
             `Motivo: ${t.reason}`,
             `Prioridade: ${t.priority}. Atendimento e integração simulados.`,
-            ...(t.waitResearch || []).map((x) => 'Consulta opcional da IA: ' + x.text),
-            ...(t.waitOutcome ? ['Resultado da pré-triagem: ' + t.waitOutcome] : []),
+            ...(t.waitResearch || []).map((x) => 'Consulta anterior da IA: ' + x.text),
+            ...(t.waitOutcome ? ['Resultado da consulta: ' + t.waitOutcome] : []),
           ],
           attempts:
             (t.messages
@@ -4835,6 +5030,7 @@
           draft,
           refs: internal,
         };
+        t.draftRefs = [...internal];
         save();
       }
       function renderAgent() {
@@ -4844,12 +5040,13 @@
           ? allTickets()
               .map(
                 (t) =>
-                  `<button class="ticket-item ${t.id === state.selected ? 'active' : ''}" data-ticket="${t.id}"><span class="row"><span>${t.id}</span><span class="tag ${t.kind === 'fraud' ? 'danger' : t.kind === 'vulnerable' ? 'amber' : 'soft'}">${esc(t.priority)}</span></span><strong>${esc(t.clientName)}</strong><small>${esc(t.reason.slice(0, 95))}</small><small style="margin-top:8px">${esc(t.status)}</small></button>`,
+                  `<button class="ticket-item ${t.id === state.selected ? 'active' : ''}" data-ticket="${t.id}"><span class="row"><span>${t.id}</span><span class="tag ${t.kind === 'fraud' ? 'danger' : t.kind === 'vulnerable' ? 'amber' : 'soft'}">${esc(t.priority)}</span></span><strong>${esc(t.clientName)}</strong><small>${esc(t.reason.slice(0, 95))}</small><small style="margin-top:8px">${esc(t.status)} · ${esc(priorityReason(t))}</small><small>${esc(openedLabel(t))}</small></button>`,
               )
               .join('')
           : '<div class="empty-state"><span>▤</span><h3>Nenhum protocolo ainda</h3><p>Entre como cliente e use um exemplo para gerar um protocolo.</p></div>';
         $('#queue-total').textContent = allTickets().length;
         $('#new-message').disabled = !selected || selected?.handling === 'closed';
+        renderManualComposer(selected);
         if (!selected) {
           $('#ticket-heading').innerHTML = '<h2>Selecione um atendimento</h2>';
           $('#copilot-content').innerHTML =
@@ -4860,40 +5057,167 @@
           return;
         }
         $('#ticket-heading').innerHTML =
-          `<h2>${esc(current().nome)} <span class="tag soft">${currentClientId}</span></h2><p>${selected.id} · ${esc(selected.priority)}<br>CPF ${esc(current().cpf_mascarado)} · histórico sanitizado</p><div class="assume-row"><span class="tag soft">${esc(selected.status)}</span>${selected.handling !== 'closed' && !humanOwns(selected) ? '<button id="assume-ticket" class="outline-button">Assumir atendimento · simulação</button>' : ''}</div>`;
-        if ($('#assume-ticket')) $('#assume-ticket').onclick = () => assumeTicket(selected);
+          `<h2>${esc(current().nome)} <span class="tag soft">${currentClientId}</span></h2><p>${selected.id} · ${esc(selected.priority)} · ${esc(priorityReason(selected))}<br>Aberto: ${esc(openedLabel(selected))}<br>CPF ${esc(current().cpf_mascarado)} · histórico sanitizado</p><div class="assume-row"><span class="tag soft">${esc(selected.status)}</span>${selected.handling !== 'closed' && !humanOwns(selected) ? '<button id="assume-ticket" class="outline-button">Assumir atendimento · simulação</button>' : ''}</div>`;
+        if ($('#assume-ticket'))
+          $('#assume-ticket').onclick = () => {
+            void assumeTicket(selected);
+          };
         $('#agent-chat').innerHTML = selected.messages.map(messageHTML).join('');
         $('#agent-chat').scrollTop = $('#agent-chat').scrollHeight;
         if (selected.copilot) renderCopilot(selected);
         bindDynamic();
       }
+      function renderManualComposer(t) {
+        const enabled = sessionRole === 'agent' && t && humanOwns(t) && t.handling !== 'closed';
+        $('#agent-input').disabled = !enabled;
+        $('#agent-input').value = t?.manualDraft || '';
+        const staleDraft = t?.manualFromDraft && t.manualSourceRevision !== t.revision;
+        $('#agent-send').disabled = !enabled || !$('#agent-input').value.trim() || staleDraft;
+        $('#agent-send-status').textContent = !t
+          ? 'Selecione um atendimento.'
+          : t.handling === 'closed'
+            ? 'Atendimento encerrado.'
+            : !enabled
+              ? 'Assuma o atendimento acima para escrever e enviar.'
+              : staleDraft
+                ? 'Chegou nova mensagem. Atualize o rascunho ou edite este texto como resposta manual antes de enviar.'
+                : t.manualFromDraft
+                  ? 'Rascunho editável. Ao enviar, você confirma que revisou o texto e as fontes.'
+                  : 'Envio manual, sem usar IA ou precisar do copiloto.';
+      }
+      $('#agent-input').oninput = () => {
+        const t = state.tickets.find((x) => x.id === state.selected);
+        if (sessionRole !== 'agent' || !t || !humanOwns(t) || t.handling === 'closed') return;
+        if (t.manualFromDraft && t.manualSourceRevision !== t.revision) {
+          t.manualFromDraft = false;
+          t.manualRefs = [];
+          $('#agent-send-status').textContent =
+            'Resposta manual editada após a nova mensagem. Confira antes de enviar.';
+        }
+        t.manualDraft = R.sanitize($('#agent-input').value);
+        $('#agent-send').disabled = !t.manualDraft.trim();
+        save();
+      };
+      $('#agent-form').onsubmit = (e) => {
+        e.preventDefault();
+        const t = state.tickets.find((x) => x.id === state.selected);
+        const text = R.sanitize($('#agent-input').value).trim();
+        if (
+          sessionRole !== 'agent' ||
+          !t ||
+          t.clientId !== currentClientId ||
+          !humanOwns(t) ||
+          t.handling === 'closed' ||
+          !text ||
+          (t.manualFromDraft && t.manualSourceRevision !== t.revision)
+        )
+          return;
+        const m = {
+          id: crypto.randomUUID(),
+          role: 'human',
+          text,
+          refs: t.manualFromDraft ? [...(t.manualRefs || [])] : [],
+          time: stamp(),
+        };
+        t.messages.push(m);
+        t.revision++;
+        t.updatedAt = new Date().toISOString();
+        t.status = 'Respondido · simulado';
+        if (state.activeTicket === t.id) state.messages.push({ ...m });
+        t.manualDraft = '';
+        t.manualRefs = [];
+        t.manualFromDraft = false;
+        save();
+        renderClient();
+        renderAgent();
+        toast('Resposta incluída no chat do cliente. Envio local simulado, sem mensagem externa.');
+      };
       function renderCopilot(t) {
         let c = t.copilot,
           stale = t.copilotRevision !== t.revision;
         $('#copilot-content').innerHTML =
-          `<div class="copilot-meta"><span class="tag ${stale ? 'amber' : 'success'}">${stale ? 'Desatualizado' : 'Contexto atualizado'} · v${t.copilotVersion}</span><button id="regenerate">↻ Atualizar</button></div>${stale ? '<div class="copilot-alert">Chegou uma nova mensagem. Atualize o resumo antes de revisar e enviar.</div>' : ''}<p class="status-line">Gerado ${esc(t.copilotAt)} · conteúdo interno</p><section class="insight"><h3>Resumo da demanda</h3><p>${esc(c.summary)}</p></section><section class="insight"><h3>Fatos conferidos</h3><ul>${c.facts.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></section><section class="insight"><h3>O que já foi tentado</h3><p>${esc(c.attempts)}</p></section><section class="insight"><h3>Pendente de confirmação</h3><p>${esc(c.pending)}</p></section><section class="insight"><h3>Próximo passo</h3><p>${esc(c.next)}</p></section><div class="source-row">${sourceHTML(c.refs)}</div>${!humanOwns(t) && t.handling !== 'closed' ? '<p class="copilot-alert">Assuma o atendimento na conversa para interromper a IA e habilitar o envio revisado.</p>' : ''}<label class="draft-label" for="draft">Rascunho para o cliente</label><textarea class="draft" id="draft" maxlength="2000">${esc(c.draft)}</textarea><label class="review-check"><input type="checkbox" id="review" ${stale || !humanOwns(t) || t.handling === 'closed' ? 'disabled' : ''}> Revisei o texto, os fatos e as fontes. Apenas esta resposta será enviada.</label><button id="approve" class="primary-button" disabled>Revisar e enviar · simulação</button><details class="followup"><summary>Perguntar ao copiloto</summary><form id="followup-form"><input id="followup-input" maxlength="500" placeholder="Ex.: o que falta confirmar?" aria-label="Pergunta interna ao copiloto"><button>Perguntar</button></form><p id="followup-answer" role="status"></p></details>`;
+          `<div class="copilot-meta"><span class="tag ${stale ? 'amber' : 'success'}">${stale ? 'Desatualizado' : 'Contexto atualizado'} · v${t.copilotVersion}</span><button id="regenerate">↻ Atualizar</button></div>${stale ? '<div class="copilot-alert">Chegou uma nova mensagem. Atualize o resumo antes de revisar e enviar.</div>' : ''}<p class="status-line">Gerado ${esc(t.copilotAt)} · conteúdo interno</p><section class="insight"><h3>Resumo da demanda</h3><p>${esc(c.summary)}</p></section><section class="insight"><h3>Fatos conferidos</h3><ul>${c.facts.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></section><section class="insight"><h3>O que já foi tentado</h3><p>${esc(c.attempts)}</p></section><section class="insight"><h3>Pendente de confirmação</h3><p>${esc(c.pending)}</p></section><section class="insight"><h3>Próximo passo</h3><p>${esc(c.next)}</p></section><div class="source-row">${sourceHTML(c.refs)}</div>${!humanOwns(t) && t.handling !== 'closed' ? '<div class="copilot-alert">Para responder ao cliente, primeiro assuma este atendimento.<button id="copilot-assume" class="outline-button">Assumir este atendimento</button></div>' : ''}<label class="draft-label" for="draft">Rascunho para o cliente</label><textarea class="draft" id="draft" maxlength="2000">${esc(c.draft)}</textarea><label class="review-check"><input type="checkbox" id="review" ${stale || !humanOwns(t) || t.handling === 'closed' ? 'disabled' : ''}> Revisei o texto, os fatos e as fontes. Apenas esta resposta será enviada.</label><button id="use-draft" class="outline-button" type="button">Usar rascunho na conversa</button><p id="draft-status" class="status-line" role="status"></p><button id="approve" class="primary-button" disabled>Revisar e enviar · simulação</button><details class="followup"><summary>Perguntar ao copiloto</summary><form id="followup-form"><input id="followup-input" maxlength="500" placeholder="Ex.: o que falta confirmar?" aria-label="Pergunta interna ao copiloto"><button>Perguntar</button></form><p id="followup-answer" role="status"></p></details>`;
         $('#regenerate').onclick = () => {
           generate(t);
           renderCopilot(t);
           toast('Contexto atualizado. Revise o novo rascunho.');
         };
-        $('#review').onchange = () => {
-          $('#approve').disabled = !$('#review').checked || !$('#draft').value.trim() || stale;
+        $('#use-draft').onclick = () => {
+          if (
+            sessionRole !== 'agent' ||
+            t.clientId !== currentClientId ||
+            state.selected !== t.id ||
+            t.copilotRevision !== t.revision ||
+            t.handling === 'closed' ||
+            !$('#draft').value.trim()
+          )
+            return;
+          t.manualDraft = R.sanitize($('#draft').value);
+          t.manualRefs = [...(t.draftRefs || c.refs || [])];
+          t.manualFromDraft = true;
+          t.manualSourceRevision = t.revision;
+          save();
+          renderManualComposer(t);
+          showAgentPanel('conversation');
+          $('#agent-input').focus();
+          toast('Rascunho copiado. Edite, confira as fontes e use Enviar resposta quando estiver pronto.');
         };
+        if ($('#copilot-assume'))
+          $('#copilot-assume').onclick = async () => {
+            const button = $('#copilot-assume');
+            button.disabled = true;
+            button.textContent = 'Assumindo…';
+            await assumeTicket(t);
+            if (button.isConnected) {
+              button.disabled = false;
+              button.textContent = 'Tentar assumir novamente';
+            }
+          };
+        function updateDraftControls(edited = false) {
+          const owned = humanOwns(t),
+            fresh = t.copilotRevision === t.revision,
+            hasText = !!$('#draft').value.trim();
+          $('#review').disabled = !owned || !fresh || t.handling === 'closed' || !hasText;
+          $('#approve').disabled = $('#review').disabled || !$('#review').checked;
+          $('#use-draft').disabled = !hasText || !fresh || t.handling === 'closed';
+          $('#draft-status').textContent =
+            t.handling === 'closed'
+              ? 'Este atendimento está encerrado.'
+              : !owned
+                ? 'Assuma o atendimento pelo botão acima para liberar a revisão e o envio.'
+                : !fresh
+                  ? 'Chegou uma nova mensagem. Atualize o contexto antes de revisar.'
+                  : !hasText
+                    ? 'Escreva uma resposta no campo acima ou gere um rascunho com a IA. Você pode responder manualmente.'
+                    : edited
+                      ? 'Texto alterado. Revise novamente e marque a confirmação para enviar.'
+                      : !$('#review').checked
+                        ? 'Revise o texto e as fontes; marque a confirmação para liberar o envio.'
+                        : 'Pronto para enviar esta resposta ao chat simulado do cliente.';
+        }
+        $('#review').onchange = () => updateDraftControls();
         $('#draft').oninput = () => {
+          t.draftEditVersion = (t.draftEditVersion || 0) + 1;
           $('#review').checked = false;
-          $('#approve').disabled = true;
+          updateDraftControls(true);
         };
+        updateDraftControls();
         $('#approve').onclick = () => {
           if (
             sessionRole !== 'agent' ||
             !humanOwns(t) ||
             t.handling === 'closed' ||
             !$('#review').checked ||
+            !$('#draft').value.trim() ||
             t.copilotRevision !== t.revision
           )
             return;
-          let m = { role: 'human', text: R.sanitize($('#draft').value), refs: [], time: stamp() };
+          let m = {
+            role: 'human',
+            text: R.sanitize($('#draft').value),
+            refs: [...(t.draftRefs || c.refs || [])],
+            time: stamp(),
+          };
           t.messages.push(m);
           t.revision++;
           t.status = 'Respondido · simulado';
@@ -4914,6 +5238,22 @@
         };
       }
       function bindDynamic() {
+        $$('[data-quick-choice]').forEach((button) => {
+          button.onclick = () => {
+            const message = state.messages[Number(button.dataset.quickMessage)];
+            const choice = message?.quickReplies?.[Number(button.dataset.quickChoice)];
+            if (sessionRole !== 'client' || !choice || message.quickUsed || !quickQuestions[choice.action])
+              return;
+            message.quickUsed = true;
+            button.parentElement.querySelectorAll('button').forEach((item) => {
+              item.disabled = true;
+            });
+            const question = choice.operationId
+              ? `Quero consultar a operação ${choice.operationId}.`
+              : quickQuestions[choice.action];
+            send(question, undefined, choice);
+          };
+        });
         $$('[data-money]').forEach(
           (b) =>
             (b.onclick = () =>
@@ -4967,6 +5307,7 @@
               b.dataset.route,
             )),
       );
+      $('#security-btn').onclick = () => send('Quero relatar suspeita de golpe.', 'fraud');
       $('#human-btn').onclick = () => send('Quero falar com uma pessoa.', 'human');
       $('#missing-scenario').onclick = () =>
         send('Não encontrei o registro da operação que quero consultar.', 'missing');
@@ -5003,6 +5344,7 @@
         if (!confirm('Apagar apenas os protocolos e a conversa da persona atual desta demonstração?')) return;
         profiles[currentClientId] = freshState();
         state = profiles[currentClientId];
+        window.dispatchEvent(new CustomEvent('caqui:reset', { detail: { clientId: currentClientId } }));
         save();
         if (sessionRole === 'client') startClient();
         else renderAgent();
@@ -5175,6 +5517,7 @@
       });
       $('#help-options').onclick = () => {
         $('#help-dialog').returnValue = '';
+        state.phase = 'helpOptional';
         $('#help-dialog').showModal();
       };
       $('#help-close').onclick = () => $('#help-dialog').close('');
@@ -5197,23 +5540,58 @@
 
       // Optional local host bridge. The standalone file remains offline.
       window.CaquiDemo = {
-        context: () => ({ role: sessionRole, clientId: currentClientId, selected: state.selected }),
+        context: () => {
+          const ticket = state.tickets.find((t) => t.id === state.selected);
+          return {
+            role: sessionRole,
+            clientId: currentClientId,
+            selected: state.selected,
+            revision: ticket?.revision,
+            draftEditVersion: ticket?.draftEditVersion || 0,
+            phase: phase(),
+            ...(sessionRole === 'agent' && ticket
+              ? {
+                  caseContext: {
+                    protocol: ticket.id,
+                    messages: ticket.messages
+                      .slice(-12)
+                      .map((m) => ({ role: m.role, text: R.sanitize(m.text).slice(0, 1000) })),
+                    research: (ticket.waitResearch || [])
+                      .slice(-5)
+                      .map((x) => R.sanitize(x.text).slice(0, 1000)),
+                    pending: R.sanitize(ticket.copilot?.pending || ticket.reason).slice(0, 1000),
+                  },
+                }
+              : {}),
+          };
+        },
         replaceAnswer(expected, reply) {
           const message = state.messages[expected.index];
           const ticket = activeTicket();
           if (
             sessionRole !== 'client' ||
             currentClientId !== expected.clientId ||
+            state.conversationId !== expected.conversationId ||
             !message ||
             message.text !== expected.originalText ||
             state.activeTicket !== expected.ticketId ||
             humanOwns(ticket) ||
-            (ticket && ['declined', 'disabled', 'closed'].includes(ticket.waitStage))
+            (ticket && ['queued', 'human', 'closed'].includes(phase()))
           )
             return false;
           message.text = R.sanitize(reply.text);
           message.refs = reply.sources;
           message.liveModel = reply.mode === 'model' ? reply.model : null;
+          message.quickReplies = (reply.quickReplies || [])
+            .filter(
+              (q) =>
+                quickQuestions[q.action] &&
+                typeof q.label === 'string' &&
+                q.label.length <= 100 &&
+                (!q.operationId ||
+                  ownOperations().some((op) => op.id_operacao === q.operationId && op.tipo === 'resgate')),
+            )
+            .slice(0, 6);
           if (ticket) {
             const recorded = ticket.messages.findLast(
               (item) =>
@@ -5236,10 +5614,15 @@
           save();
           renderClient();
           if (reply.handoff)
-            handoff(reply.handoff === 'specialist' ? 'advice' : 'missing', reply.text, reply.sources, false);
+            handoff(
+              reply.handoff === 'security' ? 'fraud' : reply.handoff === 'specialist' ? 'advice' : 'missing',
+              reply.text,
+              reply.sources,
+              false,
+            );
           return true;
         },
-        setDraft(expected, text) {
+        setDraft(expected, text, refs = []) {
           if (
             sessionRole !== 'agent' ||
             currentClientId !== expected.clientId ||
@@ -5247,16 +5630,24 @@
           )
             return false;
           const ticket = state.tickets.find((item) => item.id === state.selected);
-          if (!ticket || ticket.handling === 'closed' || ticket.copilotRevision !== ticket.revision)
+          if (
+            !ticket ||
+            ticket.handling === 'closed' ||
+            ticket.copilotRevision !== ticket.revision ||
+            expected.revision !== ticket.revision ||
+            expected.draftEditVersion !== (ticket.draftEditVersion || 0)
+          )
             return false;
+          ticket.draftRefs = refs.filter((id) => D.knowledge[id] || id.startsWith('record:'));
           $('#draft').value = R.sanitize(text);
           $('#draft').dispatchEvent(new Event('input', { bubbles: true }));
           return true;
         },
       };
       const sendOffline = send;
+      let selectedQuickReply = null;
       function requestLiveAnswer(input, before) {
-        if (sessionRole !== 'client' || humanOwns(activeTicket())) return;
+        if (sessionRole !== 'client' || ['queued', 'human', 'closed'].includes(phase())) return;
         const index = state.messages.findIndex(
           (message, i) =>
             i >= before &&
@@ -5271,18 +5662,25 @@
           new CustomEvent('caqui:question', {
             detail: {
               question: input,
+              conversationId: state.conversationId,
               clientId: currentClientId,
               index,
               originalText: state.messages[index].text,
               ticketId: state.activeTicket,
+              ...(selectedQuickReply ? { quickReply: selectedQuickReply } : {}),
             },
           }),
         );
       }
-      send = (input, forced) => {
+      send = (input, forced, quickReply) => {
         const before = state.messages.length;
-        sendOffline(input, forced);
-        requestLiveAnswer(input, before);
+        selectedQuickReply = quickReply || null;
+        try {
+          sendOffline(input, forced);
+          requestLiveAnswer(input, before);
+        } finally {
+          selectedQuickReply = null;
+        }
       };
     </script>
   </body>

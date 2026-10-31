@@ -74,3 +74,9 @@ A primeira resposta genérica sobre dinheiro privilegiava um resgate em vez de m
 Também corrigimos uma estimativa excessiva: 864 horas/mês pressupunha toda a categoria elegível. A SPEC agora explicita **864 × f**, com `f` ainda não medido. Esses ajustes viraram requisitos e cenários de teste, não apenas mudanças de redação.
 
 Na checagem focada posterior, o [checker do case](caqui-invest/ferramentas/checar_respostas.py) aprovou 11/11 pistas em perguntas selecionadas. A revisão encontrou falhas reais no reconhecimento de suporte remoto suspeito e de pedidos de indicação; ambas foram corrigidas. [Respostas e limites da checagem](docs/prototipo/README.md#checagem-focada-com-o-script-do-case) ficam registrados. A suíte integral de 40 perguntas permanece não validada.
+
+### Correções após os testes de uso
+
+O usuário relatou respostas iguais para perguntas diferentes. Reproduzimos que a consulta de resgate precedia imposto e que “dinheiro” acionava saldo antes de garantia do FGC. Corrigimos a ordem dos assuntos, o vínculo de operação por produto/valor/data e a memória por sessão. A última decisão de fluxo bloqueia o chat na fila até o atendente assumir; ajuda opcional acontece antes de encaminhar. A fila agora mostra motivo da prioridade e abertura real em Brasília, ordenando prioridade e depois a entrada mais antiga. [Diagnóstico e validações desta alteração](docs/prototipo/VALIDACAO-CORRECOES.md).
+
+O atendente pode assumir e escrever diretamente na conversa, sem usar o copiloto. Gerar/usar rascunho é opcional; o envio continua explícito. A proteção contra instruções maliciosas combina escopo de sessão/conta, integridade das KBs e saída restrita a textos validados; não é garantia de imunidade.

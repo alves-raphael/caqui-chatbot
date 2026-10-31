@@ -15,7 +15,7 @@ Dona Marta, Rafael, Camila e Celina usam seus próprios dados sintéticos e exem
 
 **Resolver dúvidas rotineiras sem humano e reduzir trabalho repetido no atendimento.**
 
-Entradas demonstrativas separadas para cliente e atendente. Pedido humano registra protocolo antes de oferecer pré-triagem opcional, identificada como IA simulada. Recusar ou ignorar preserva fila/prioridade; indicar resolução ainda exige autorização explícita para encerrar. Ao assumir, o atendente interrompe respostas automáticas e recebe histórico, pesquisa, fontes e pendências. O copiloto prepara resumo/rascunho, mas o atendente revisa antes do envio simulado.
+Entradas demonstrativas separadas para cliente e atendente. A ajuda opcional acontece antes do encaminhamento final. Ao pedir uma pessoa ou faltar resposta validada, registrar o protocolo e bloquear novas mensagens/IA enquanto aguarda. O atendente assume e libera mensagens destinadas a ele; a IA não responde em paralelo. O copiloto recebe histórico, consultas, fontes e pendências e exige revisão antes do envio simulado. Segurança, reclamação e encerramento de conta permanecem acessíveis na fila.
 
 ## 3. Quanto isso move?
 
@@ -79,3 +79,7 @@ Itens de “O que vale para qualquer caminho” que não se aplicam: **nenhum**.
 | 31/10/2026 — entrega            | Separar demo estática pública de integração local de LLM                           | Não apresentar trabalho local como recurso já publicado           |
 
 **Entrega de infraestrutura:** Dockerfile e Compose para Dokploy, com acesso protegido e volume persistente, descritos em [DEPLOY-DOCKER.md](docs/DEPLOY-DOCKER.md). Por decisão final do usuário, o grupo realiza o deploy; o assistente não publicou a aplicação integrada.
+
+**Mudança de fluxo em 31/10/2026:** o pedido final do usuário substituiu a pré-triagem durante a espera por bloqueio do chat na fila. Estados: `bot → helpOptional → queued → human → closed`, admitindo encaminhamento direto de `bot` para `queued`. Prioridade: segurança, vulnerabilidade/60+, normal; dentro da mesma prioridade, abertura mais antiga primeiro. Abertura usa horário real, separado do relógio financeiro; legado sem data real aparece como não registrado.
+
+**Atendente:** compositor manual independente da IA; assumir, escrever e enviar sem checkbox do copiloto. Rascunho opcional pode ser copiado e editado. Texto copiado fica desatualizado quando chega mensagem nova; envio manual não atribui fontes inexistentes.

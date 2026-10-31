@@ -95,7 +95,7 @@ describe('local demo rules and model boundary', () => {
     expect(reply.mode).toBe('fallback');
     expect(JSON.stringify(reply)).not.toContain('secret-fake-key');
   });
-  it('keeps memory scoped when an agent changes accounts', async () => {
+  it('keeps memory scoped to a participant session, including the same persona', async () => {
     const fetcher = mockModel();
     const service = new DemoChatService(
       new OpenRouterProvider({ enabled: true, apiKey: 'fake', budgetUsd: 0.5, fetcher }),
@@ -103,19 +103,20 @@ describe('local demo rules and model boundary', () => {
     await service.answer(
       { clientId: 'C-0001', role: 'client' },
       { message: 'Minha dúvida exclusiva sobre a aplicação de 20 mil', model: 'luna' },
+      'participant-one',
     );
     const rafael = await service.answer(
       { clientId: 'C-0002', role: 'agent' },
-      { message: 'Resuma o atendimento', model: 'terra' },
+      { message: 'Saldo', model: 'terra' },
     );
     const marta = await service.answer(
       { clientId: 'C-0001', role: 'agent' },
-      { message: 'Resuma o atendimento', model: 'terra' },
+      { message: 'Saldo', model: 'terra' },
     );
     expect(rafael.text).not.toContain('dúvida exclusiva');
     expect(marta.text).not.toContain('Rascunho interno');
     expect(fetcher.mock.calls[1]?.[1]?.body).not.toContain('dúvida exclusiva');
-    expect(fetcher.mock.calls[2]?.[1]?.body).toContain('dúvida exclusiva');
+    expect(fetcher.mock.calls[2]?.[1]?.body).not.toContain('dúvida exclusiva');
   });
 });
 
