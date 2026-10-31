@@ -35,6 +35,15 @@ type Plan = {
   sources: string[];
   financial: boolean;
   rule?: boolean;
+  answered?: boolean;
+  resolutionTopic?: string;
+  handoffReason?:
+    | 'unverified_source'
+    | 'missing_operation'
+    | 'no_coverage'
+    | 'security_risk'
+    | 'human_requested'
+    | 'no_progress_limit';
   handoff?: 'support' | 'specialist' | 'security';
   quickReplies?: QuickReply[];
 };
@@ -87,8 +96,9 @@ function kb(id: string): string | null {
 function publicArticle(id: string): Plan {
   const text = kb(id);
   return text
-    ? { text, sources: [id], financial: false }
+    ? { text, sources: [id], financial: false, resolutionTopic: id }
     : {
+        handoffReason: 'unverified_source',
         text: 'Não consegui validar a fonte desta resposta. Vou encaminhar a dúvida para conferência.',
         sources: [],
         financial: false,
@@ -112,6 +122,7 @@ function plan(identity: DemoIdentity, question: string): Plan {
       text: 'Não compartilhe senhas ou códigos e não faça transferências. Procure Segurança imediatamente, disponível 24h. Nesta demonstração, bloqueio e encaminhamento são simulados; nenhuma equipe real foi acionada.',
       sources: ['KB-019', 'KB-020'],
       handoff: 'security',
+      handoffReason: 'security_risk',
       financial: false,
       rule: true,
     };
@@ -138,9 +149,32 @@ function plan(identity: DemoIdentity, question: string): Plan {
       financial: false,
       rule: true,
     };
+  if (/^(?:oi|ola|bom dia|boa tarde|boa noite|obrigad[oa]|valeu)[!.,\s]*$/.test(text))
+    return {
+      text: 'Olá! Sou PatricIA. Posso explicar produtos, consultar sua conta ou acompanhar uma operação. Como posso ajudar?',
+      sources: [],
+      financial: false,
+      rule: true,
+      answered: true,
+    };
+  if (/\batendente\b|\bhumano\b|(?:falar|conversar) com (?:uma? )?pessoa/.test(text))
+    return {
+      text: 'Vou registrar seu pedido com o histórico para uma pessoa continuar.',
+      sources: ['KB-025', 'KB-026'],
+      financial: false,
+      rule: true,
+      handoff: 'support',
+      handoffReason: 'human_requested',
+    };
+  if (
+    /(?:oferece|tem|disponivel)/.test(text) &&
+    /cripto|previdencia|cambio|emprestimo|seguro|consorcio/.test(text)
+  )
+    return publicArticle('KB-030');
   const requested = question.match(/OP-\d+/i)?.[0]?.toUpperCase();
   if (requested && !operations.some((o) => o.id_operacao === requested))
     return {
+      handoffReason: 'missing_operation',
       text: 'Não encontrei essa operação nos dados autorizados desta persona. Não vou consultar outra conta nem inventar uma previsão.',
       handoff: 'support',
       sources: ['KB-008'],
@@ -151,10 +185,18 @@ function plan(identity: DemoIdentity, question: string): Plan {
     [/imposto|tribut|aliquota|\bir\b|iof/, 'KB-010'],
     [/fgc|garantia/, 'KB-013'],
     [/corte|ate que horas|horario limite/, 'KB-006'],
+    [/sem liquidez|vencimento/, 'KB-005'],
     [/liquidez/, 'KB-004'],
     [/document|informe/, 'KB-017'],
     [/como.*(?:pix|transfer)|limite.*(?:pix|transfer)/, 'KB-018'],
     [/tarifa/, 'KB-024'],
+    [/\bcdi\b/, 'KB-002'],
+    [/poupanca/, 'KB-012'],
+    [/bruto|liquido|rentabilidade|rendimento|rendeu/, 'KB-009'],
+    [/senha|aparelho|acess(?:o|ar)/, 'KB-021'],
+    [/cadastro|endereco|telefone|e-?mail/, 'KB-022'],
+    [/varejista|parceria/, 'KB-023'],
+    [/o que e a caqui|como funciona a caqui/, 'KB-001'],
   ];
   const specificTopic = specificTopics.find(([pattern]) => pattern.test(text));
   if (specificTopic) return publicArticle(specificTopic[1]);
@@ -221,6 +263,7 @@ function plan(identity: DemoIdentity, question: string): Plan {
           : matching[0];
     if (!op)
       return {
+        handoffReason: 'missing_operation',
         text: 'Não encontrei uma operação que corresponda ao produto, valor e data informados. Vou encaminhar o contexto para conferência, sem substituir por outro pedido.',
         handoff: 'support',
         sources: ['KB-008'],
@@ -290,13 +333,24 @@ function plan(identity: DemoIdentity, question: string): Plan {
     [/lci|lca/, 'KB-011'],
     [/cdb/, 'KB-003'],
     [/fundo/, 'KB-014'],
+    [/tesouro/, 'KB-015'],
+    [/\bacoes\b|\bacao\b/, 'KB-016'],
+    [/sem liquidez|vencimento/, 'KB-005'],
     [/document|informe/, 'KB-017'],
     [/como.*(?:pix|transfer)|limite.*(?:pix|transfer)/, 'KB-018'],
     [/tarifa/, 'KB-024'],
+    [/\bcdi\b/, 'KB-002'],
+    [/poupanca/, 'KB-012'],
+    [/bruto|liquido|rentabilidade|rendimento|rendeu/, 'KB-009'],
+    [/senha|aparelho|acess(?:o|ar)/, 'KB-021'],
+    [/cadastro|endereco|telefone|e-?mail/, 'KB-022'],
+    [/varejista|parceria/, 'KB-023'],
+    [/o que e a caqui|como funciona a caqui/, 'KB-001'],
   ];
   const topic = topics.find(([pattern]) => pattern.test(text));
   if (topic) return publicArticle(topic[1]);
   return {
+    handoffReason: 'no_coverage',
     text: 'Não tenho uma resposta confirmada para essa dúvida. Vou encaminhá-la com o que você já contou, sem pedir que repita.',
     handoff: /invest|produto|cripto|previdencia|cambio/.test(text) ? 'specialist' : 'support',
     sources: ['KB-008'],
@@ -325,6 +379,8 @@ export class DemoChatService {
         ...response,
         text: 'Minha resposta não acompanhou sua nova pergunta. Vou encaminhar o histórico para uma pessoa continuar, sem repetir a mesma explicação.',
         handoff: 'support',
+        handoffReason: 'no_progress_limit',
+        resolution: 'handoff',
         quickReplies: [],
         mode: 'rule',
         model: null,
@@ -385,7 +441,15 @@ export class DemoChatService {
         conversationId,
         [...previous, `Fontes consultadas: ${result.sources.join(', ')}`].slice(-6),
       );
+    const resolution: ChatResponse['resolution'] = result.handoff
+      ? 'handoff'
+      : result.answered || !result.rule
+        ? 'answered'
+        : 'clarification';
     const base = {
+      resolution,
+      ...(result.resolutionTopic ? { resolutionTopic: result.resolutionTopic } : {}),
+      ...(result.handoffReason ? { handoffReason: result.handoffReason } : {}),
       text: result.text,
       sources: result.sources,
       model: null,
@@ -442,6 +506,7 @@ export class DemoChatService {
       text: result.financial ? `${text}\n\n${result.text}` : text,
       sources: result.sources,
       mode: 'model',
+      resolutionTopic: text === result.text ? result.resolutionTopic : undefined,
       model: MODELS[request.model],
       notice: 'IA conectada ao OpenRouter. Texto selecionado de opções validadas pelo servidor.',
       costUsd: response.costUsd,
