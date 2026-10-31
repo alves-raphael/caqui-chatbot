@@ -5149,21 +5149,27 @@
       $('#context-content').addEventListener('click', (e) => {
         if (e.target.closest('button')) closeContext();
       });
-      $('#help-options').onclick = () => $('#help-dialog').showModal();
-      $('#help-close').onclick = () => $('#help-dialog').close();
+      $('#help-options').onclick = () => {
+        $('#help-dialog').returnValue = '';
+        $('#help-dialog').showModal();
+      };
+      $('#help-close').onclick = () => $('#help-dialog').close('');
       $$('[data-help]').forEach(
         (b) =>
           (b.onclick = () => {
             let choice = b.dataset.help;
-            $('#help-dialog').close();
+            $('#help-dialog').close('selected');
             if (choice === 'human') send('Quero falar com uma pessoa.', 'human');
             else if (choice === 'operation') send('Quero consultar minha operação.', 'operation');
             else if (choice === 'documents') send('Onde encontro meu informe de rendimentos?', 'documents');
             else send('Quero entender as diferenças entre os produtos.', 'education');
-            $('#client-input').focus();
           }),
       );
-      $('#help-dialog').addEventListener('close', () => $('#help-options').focus());
+      $('#help-dialog').addEventListener('close', () => {
+        if (sessionRole !== 'client') return;
+        const target = $('#help-dialog').returnValue === 'selected' ? $('#client-input') : $('#help-options');
+        target.focus();
+      });
     </script>
   </body>
 </html>

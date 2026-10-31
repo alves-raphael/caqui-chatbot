@@ -427,7 +427,12 @@ for (const viewport of [
     expect(pageHeight).toBeLessThanOrEqual(viewport.height);
     await page.screenshot({ path: testInfo.outputPath('chat-compositor.png') });
     await help.click();
+    const helpDialog = page.getByRole('dialog', { name: 'Vamos resolver do seu jeito.' });
+    await helpDialog.evaluate((dialog) => {
+      dialog.addEventListener('close', () => dialog.setAttribute('data-closed', 'true'), { once: true });
+    });
     await page.getByRole('button', { name: /Consultar uma operação/ }).click();
+    await expect(page.locator('#help-dialog')).toHaveAttribute('data-closed', 'true');
     await expect(input).toBeFocused();
     await human.click();
     await logout(page);
