@@ -1686,6 +1686,575 @@
       .bubble .advice-actions button {
         line-height: 1.4;
       }
+      /* Workspace fit: only conversations and supporting panels scroll. */
+      html,
+      body {
+        min-height: 100%;
+        width: 100%;
+      }
+      .workspace-open {
+        height: 100dvh;
+        overflow: hidden;
+      }
+      .workspace-open .shell {
+        height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
+      .workspace-open .topbar {
+        height: 54px;
+        min-height: 54px;
+        flex: none;
+      }
+      .workspace-open main {
+        width: 100%;
+        min-height: 0;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 18px 28px 14px;
+      }
+      .workspace-open .page-heading {
+        flex: none;
+        margin-bottom: 14px;
+        min-height: 0;
+      }
+      .workspace-open .page-heading h1 {
+        font-size: 27px;
+        margin-bottom: 5px;
+      }
+      .workspace-open .page-heading p {
+        font-size: 12px;
+      }
+      .workspace-open .main-footer {
+        display: none;
+      }
+      .workspace-open #client-view,
+      .workspace-open #agent-view {
+        min-height: 0;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+      .workspace-open .persona-test-bar {
+        flex: none;
+        padding: 10px 15px;
+        margin-bottom: 12px;
+      }
+      .workspace-open .client-grid {
+        flex: 1;
+        min-height: 0;
+        align-items: stretch;
+      }
+      .workspace-open .chat-panel {
+        height: 100%;
+        min-height: 0;
+        max-height: none;
+      }
+      .workspace-open .chat-panel > .panel-heading {
+        padding: 13px 18px;
+        flex: none;
+      }
+      .workspace-open .chat-body {
+        min-height: 0;
+        flex: 1 1 0;
+        overflow-y: auto;
+        overflow-x: hidden;
+        overscroll-behavior: contain;
+        padding: 18px;
+        scrollbar-gutter: stable;
+      }
+      .workspace-open .quick-prompts {
+        flex: none;
+        padding: 7px 16px 10px;
+        gap: 6px;
+      }
+      .workspace-open .quick-prompts button {
+        padding: 6px 8px;
+        font-size: 10px;
+      }
+      .workspace-open .composer {
+        flex: none;
+        margin: 0 16px;
+        min-height: 47px;
+      }
+      .workspace-open .chat-footnote {
+        flex: none;
+        padding: 6px 16px;
+        font-size: 9px;
+      }
+      .workspace-open .escape-actions {
+        flex: none;
+        padding: 8px 16px;
+        gap: 8px 12px;
+        min-height: 46px;
+      }
+      .workspace-open .escape-actions button {
+        margin: 0;
+        font-size: 10px;
+      }
+      .workspace-open .escape-actions #human-btn {
+        color: var(--green);
+        font-weight: 600;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        font-size: 11px;
+        margin-right: auto;
+      }
+      .workspace-open .escape-actions .help-main {
+        padding: 7px 9px;
+        border-radius: 6px;
+        background: #eaf2e6;
+        border: 1px solid #d7e4cf;
+        color: var(--green);
+        font-size: 11px;
+        font-weight: 650;
+        text-decoration: none;
+      }
+      .workspace-open .client-context {
+        min-height: 0;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding-right: 3px;
+      }
+      .workspace-open .client-context > * {
+        flex-shrink: 0;
+      }
+      .workspace-open .agent-notice {
+        flex: none;
+        margin-bottom: 10px;
+        padding: 7px 10px;
+        font-size: 10px;
+      }
+      .workspace-open .agent-grid {
+        flex: 1;
+        min-height: 0;
+        align-items: stretch;
+        grid-template-columns: 180px minmax(230px, 1fr) minmax(280px, 1.1fr);
+        gap: 12px;
+      }
+      .workspace-open .agent-grid > .card {
+        height: 100%;
+        min-height: 0;
+        max-height: none;
+        display: flex;
+        flex-direction: column;
+        grid-column: auto;
+        grid-row: auto;
+      }
+      .workspace-open .ticket-panel .panel-heading,
+      .workspace-open .ticket-panel > .queue-caption {
+        flex: none;
+      }
+      .workspace-open #ticket-list {
+        min-height: 0;
+        overflow: auto;
+        overscroll-behavior: contain;
+        flex: 1;
+      }
+      .workspace-open .agent-conversation > .panel-heading,
+      .workspace-open .agent-actions {
+        flex: none;
+      }
+      .workspace-open .agent-actions {
+        padding: 11px 15px;
+      }
+      .workspace-open .copilot-panel > .panel-heading {
+        flex: none;
+        padding: 12px 15px;
+      }
+      .workspace-open #copilot-content {
+        min-height: 0;
+        overflow: auto;
+        overscroll-behavior: contain;
+        flex: 1;
+        padding: 15px;
+        scrollbar-gutter: stable;
+      }
+      .workspace-open .copilot-panel .draft {
+        min-height: 120px;
+      }
+      .client-tools,
+      .agent-panel-switch {
+        display: none;
+      }
+      .help-choice-list {
+        display: grid;
+        gap: 9px;
+        margin: 20px 0;
+      }
+      .help-choice-list button {
+        background: #f7faf4;
+        border: 1px solid #dce6d5;
+        border-radius: 8px;
+        padding: 13px 15px;
+        text-align: left;
+        font-size: 13px;
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .help-choice-list button:last-child {
+        background: white;
+        color: var(--green);
+        font-weight: 650;
+      }
+      #help-close {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+      }
+      #context-dialog {
+        width: 520px;
+        max-height: 90dvh;
+        padding: 20px;
+        overflow: auto;
+        overscroll-behavior: contain;
+      }
+      #context-dialog h2 {
+        font-size: 19px;
+        margin: 0;
+      }
+      #context-content {
+        padding-top: 18px;
+      }
+      #context-content .persona-test-bar {
+        display: block;
+        margin-bottom: 16px;
+      }
+      #context-content #persona-examples {
+        margin-top: 10px;
+      }
+      #context-content .client-context {
+        display: flex;
+        overflow: visible;
+        height: auto;
+      }
+      dialog {
+        max-height: 90dvh;
+        overflow: auto;
+        overscroll-behavior: contain;
+      }
+      .workspace-open .message {
+        margin-bottom: 14px;
+      }
+      .workspace-open .empty-state {
+        padding: 30px 15px;
+      }
+      @media (max-width: 1100px) {
+        .workspace-open main {
+          padding: 14px 18px 12px;
+        }
+        .workspace-open .agent-grid {
+          grid-template-columns: 160px minmax(210px, 1fr) minmax(260px, 1.1fr);
+        }
+        .workspace-open .page-heading h1 {
+          font-size: 24px;
+        }
+        .workspace-open .client-grid {
+          gap: 14px;
+          grid-template-columns: minmax(0, 1fr) 260px;
+        }
+      }
+      @media (max-width: 940px) {
+        .workspace-open .client-grid {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .workspace-open #client-view > .persona-test-bar,
+        .workspace-open .client-grid > .client-context {
+          display: none;
+        }
+        .client-tools {
+          display: flex;
+          justify-content: flex-end;
+          margin-bottom: 8px;
+          flex: none;
+        }
+        .client-tools button {
+          padding: 6px 9px;
+          font-size: 10px;
+        }
+        .agent-panel-switch {
+          display: flex;
+          gap: 6px;
+          flex: none;
+          margin-bottom: 8px;
+        }
+        .agent-panel-switch button {
+          flex: 1;
+          border: 1px solid #dce4d6;
+          background: white;
+          border-radius: 7px;
+          padding: 8px;
+          font-size: 11px;
+        }
+        .agent-panel-switch button.active {
+          background: var(--green);
+          color: white;
+          border-color: var(--green);
+        }
+        .workspace-open .agent-grid {
+          display: block;
+        }
+        .workspace-open .agent-grid[data-panel='tickets'] > .agent-conversation,
+        .workspace-open .agent-grid[data-panel='tickets'] > .copilot-panel,
+        .workspace-open .agent-grid[data-panel='conversation'] > .ticket-panel,
+        .workspace-open .agent-grid[data-panel='conversation'] > .copilot-panel,
+        .workspace-open .agent-grid[data-panel='copilot'] > .ticket-panel,
+        .workspace-open .agent-grid[data-panel='copilot'] > .agent-conversation {
+          display: none;
+        }
+        .workspace-open .agent-grid > .card {
+          width: 100%;
+          margin: 0;
+        }
+        .workspace-open .page-heading {
+          gap: 12px;
+        }
+        .workspace-open .clock-control {
+          max-width: 180px;
+        }
+        .workspace-open .sidebar {
+          padding-top: 24px;
+        }
+        .workspace-open .side-note {
+          display: none;
+        }
+      }
+      @media (max-width: 720px) {
+        .workspace-open .sidebar {
+          height: 49px;
+          min-height: 49px;
+          padding: 9px 16px;
+          flex: none;
+        }
+        .workspace-open .sidebar .brand {
+          font-size: 26px;
+        }
+        .workspace-open .shell {
+          height: calc(100dvh - 49px);
+        }
+        .workspace-open .topbar {
+          height: 37px;
+          min-height: 37px;
+          padding: 0 14px;
+        }
+        .workspace-open main {
+          padding: 10px 10px 8px;
+        }
+        .workspace-open .page-heading {
+          margin-bottom: 6px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .workspace-open .page-heading .eyebrow {
+          font-size: 8px;
+          margin-bottom: 3px;
+        }
+        .workspace-open .page-heading h1 {
+          font-size: 21px;
+          margin: 0;
+          letter-spacing: -0.6px;
+        }
+        .workspace-open .page-heading p {
+          display: none;
+        }
+        .workspace-open .clock-control {
+          display: none;
+        }
+        .workspace-open .client-tools {
+          margin-bottom: 6px;
+        }
+        .workspace-open .client-grid {
+          gap: 0;
+        }
+        .workspace-open .chat-panel {
+          border-radius: 13px;
+        }
+        .workspace-open .chat-panel > .panel-heading {
+          padding: 10px 12px;
+          gap: 9px;
+        }
+        .workspace-open .assistant-badge {
+          height: 31px;
+          width: 31px;
+          border-radius: 9px;
+          font-size: 23px;
+        }
+        .workspace-open .chat-panel h2 {
+          font-size: 13px;
+        }
+        .workspace-open .panel-heading p {
+          font-size: 9px;
+        }
+        .workspace-open .chat-body {
+          padding: 12px;
+          scrollbar-gutter: auto;
+        }
+        .workspace-open .bubble {
+          padding: 12px;
+          font-size: 12px;
+          line-height: 1.65;
+        }
+        .workspace-open .quick-prompts {
+          padding: 6px 10px;
+          flex-wrap: nowrap;
+          overflow-x: auto;
+          overscroll-behavior-x: contain;
+        }
+        .workspace-open .quick-prompts button {
+          white-space: nowrap;
+          flex: none;
+          padding: 6px 9px;
+          font-size: 10px;
+        }
+        .workspace-open .composer {
+          margin: 0 10px;
+          padding: 6px;
+          min-height: 43px;
+        }
+        .workspace-open .composer input {
+          font-size: 16px;
+          padding: 3px;
+        }
+        .workspace-open .chat-footnote {
+          padding: 4px 10px;
+          font-size: 8px;
+          line-height: 1.35;
+        }
+        .workspace-open .escape-actions {
+          padding: 6px 10px;
+          gap: 5px 10px;
+          min-height: 46px;
+        }
+        .workspace-open .escape-actions .help-main {
+          font-size: 10px;
+          padding: 6px 7px;
+        }
+        .workspace-open .escape-actions #human-btn {
+          font-size: 10px;
+        }
+        .workspace-open .escape-actions button {
+          font-size: 9px;
+        }
+        .workspace-open .agent-notice {
+          font-size: 9px;
+          line-height: 1.35;
+          padding: 6px 8px;
+          margin-bottom: 7px;
+        }
+        .workspace-open .agent-conversation .panel-heading {
+          padding: 10px 13px;
+        }
+        .workspace-open .agent-actions {
+          padding: 8px 12px;
+        }
+        .workspace-open .agent-actions small {
+          font-size: 8px;
+          margin-top: 3px;
+        }
+        .workspace-open .sidebar #logout {
+          font-size: 10px;
+        }
+        .workspace-open .copilot-panel #copilot-content {
+          padding: 13px;
+        }
+        .workspace-open .copilot-panel .review-check {
+          font-size: 11px;
+        }
+        .workspace-open .copilot-panel .draft {
+          font-size: 16px;
+        }
+        .workspace-open .copilot-panel .primary-button {
+          font-size: 12px;
+        }
+        #context-dialog {
+          max-height: 90dvh;
+        }
+      }
+      @media (max-height: 650px) {
+        .workspace-open .page-heading {
+          margin-bottom: 8px;
+        }
+        .workspace-open .page-heading .eyebrow,
+        .workspace-open .page-heading p {
+          display: none;
+        }
+        .workspace-open .page-heading h1 {
+          font-size: 22px;
+        }
+        .workspace-open .page-heading .clock-control label,
+        .workspace-open .page-heading .clock-control small {
+          display: none;
+        }
+        .workspace-open .persona-test-bar {
+          padding: 6px 12px;
+          margin-bottom: 8px;
+        }
+        .workspace-open .persona-test-bar p {
+          display: none;
+        }
+        .workspace-open .chat-panel > .panel-heading {
+          padding: 9px 14px;
+        }
+        .workspace-open .chat-panel .assistant-badge {
+          height: 30px;
+          width: 30px;
+          font-size: 23px;
+        }
+        .workspace-open .chat-body {
+          padding: 12px;
+        }
+        .workspace-open .sidebar .brand-sub {
+          margin-bottom: 24px;
+        }
+        .workspace-open .sidebar .side-note {
+          display: none;
+        }
+      }
+      @media (max-height: 470px) {
+        .workspace-open .topbar {
+          height: 31px;
+          min-height: 31px;
+        }
+        .workspace-open main {
+          padding-top: 6px;
+          padding-bottom: 5px;
+        }
+        .workspace-open .page-heading {
+          display: none;
+        }
+        .workspace-open .persona-test-bar {
+          display: none;
+        }
+        .workspace-open .chat-panel > .panel-heading {
+          padding: 5px 10px;
+        }
+        .workspace-open .chat-panel > .panel-heading p,
+        .workspace-open .chat-panel .assistant-badge {
+          display: none;
+        }
+        .workspace-open .quick-prompts {
+          display: none;
+        }
+        .workspace-open .chat-footnote {
+          font-size: 8px;
+        }
+        .workspace-open .agent-notice {
+          display: none;
+        }
+        .workspace-open .agent-panel-switch {
+          margin-bottom: 5px;
+        }
+        .workspace-open .client-tools {
+          margin-bottom: 4px;
+        }
+        .workspace-open .agent-actions small {
+          display: none;
+        }
+      }
     </style>
   </head>
   <body>
@@ -1797,6 +2366,9 @@
           </div>
         </div>
         <section id="client-view" aria-label="Área do cliente">
+          <div class="client-tools">
+            <button id="context-open" class="outline-button">Conta e exemplos de teste</button>
+          </div>
           <section class="persona-test-bar">
             <div>
               <span class="eyebrow">EXEMPLOS DESTA PERSONA</span>
@@ -1817,6 +2389,7 @@
               <div
                 class="chat-body"
                 id="client-chat"
+                tabindex="0"
                 role="log"
                 aria-live="polite"
                 aria-label="Conversa com assistente"
@@ -1840,7 +2413,8 @@
                 Não informe senhas, códigos ou dados reais. Nenhuma ação financeira é executada.
               </div>
               <div class="escape-actions">
-                <button id="human-btn">♧ Falar com uma pessoa</button
+                <button id="help-options" class="help-main">Ver opções de ajuda</button
+                ><button id="human-btn">♧ Falar com uma pessoa</button
                 ><button data-route="complaint">Reclamar</button
                 ><button data-route="close">Encerrar conta</button>
               </div>
@@ -1902,7 +2476,12 @@
             ◈ Permissões e papéis simulados. Este protótipo estático não implementa autenticação ou isolamento
             de produção.
           </div>
-          <div class="agent-grid">
+          <div class="agent-panel-switch" role="group" aria-label="Painel do atendente">
+            <button data-agent-panel="tickets">Fila</button
+            ><button data-agent-panel="conversation" class="active">Conversa</button
+            ><button data-agent-panel="copilot">Copiloto</button>
+          </div>
+          <div class="agent-grid" data-panel="conversation">
             <aside class="card ticket-panel">
               <div class="panel-heading compact">
                 <h2>Atendimentos</h2>
@@ -1916,7 +2495,7 @@
             </aside>
             <section class="card agent-conversation">
               <div id="ticket-heading" class="panel-heading compact"><h2>Selecione um atendimento</h2></div>
-              <div id="agent-chat" class="chat-body" role="log" aria-live="polite"></div>
+              <div id="agent-chat" class="chat-body" tabindex="0" role="log" aria-live="polite"></div>
               <div class="agent-actions">
                 <button id="new-message" class="outline-button">Simular nova mensagem do cliente</button
                 ><small>Uma nova mensagem desatualiza o copiloto.</small>
@@ -1930,7 +2509,7 @@
                 </div>
                 <span class="tag soft">INTERNO</span>
               </div>
-              <div id="copilot-content">
+              <div id="copilot-content" tabindex="0" aria-label="Conteúdo do copiloto">
                 <div class="empty-state">
                   <span>✳</span>
                   <h3>O contexto vem junto.</h3>
@@ -1947,6 +2526,29 @@
       </main>
     </div>
     <div id="toast" role="status" aria-live="polite"></div>
+    <dialog id="help-dialog" aria-labelledby="help-title">
+      <button class="icon-button" id="help-close" aria-label="Fechar opções de ajuda">×</button>
+      <div class="eyebrow">COMO VOCÊ PREFERE SEGUIR?</div>
+      <h2 id="help-title">Vamos resolver do seu jeito.</h2>
+      <p>
+        Posso ajudar com uma dúvida por aqui ou registrar sua conversa para uma pessoa. Você escolhe, sem
+        precisar repetir o contexto.
+      </p>
+      <div class="help-choice-list">
+        <button data-help="products">Entender um produto ou conceito <span>›</span></button
+        ><button data-help="operation">Consultar uma operação <span>›</span></button
+        ><button data-help="documents">Impostos e documentos <span>›</span></button
+        ><button data-help="human">Prefiro falar com uma pessoa <span>›</span></button>
+      </div>
+      <p class="record-label">Atendimento humano e encaminhamento simulados. Segurança tem prioridade 24h.</p>
+    </dialog>
+    <dialog id="context-dialog" aria-labelledby="context-title">
+      <div class="row">
+        <h2 id="context-title">Sua conta e exemplos</h2>
+        <button class="icon-button" id="context-close" aria-label="Fechar conta e exemplos">×</button>
+      </div>
+      <div id="context-content"></div>
+    </dialog>
     <dialog id="about-dialog">
       <button class="close-dialog icon-button" aria-label="Fechar">×</button>
       <div class="eyebrow">DEMONSTRAÇÃO, NÃO UM BANCO</div>
@@ -3578,6 +4180,7 @@
               state.selected = target.id;
               generate(target);
               renderAgent();
+              showAgentPanel('conversation');
             }),
         );
         $$('[data-block]').forEach(
@@ -3706,6 +4309,7 @@
       }
       function login(role) {
         sessionRole = role;
+        document.body.classList.add('workspace-open');
         $('#login-screen').hidden = true;
         $('.sidebar').hidden = false;
         $('.shell').hidden = false;
@@ -3724,6 +4328,9 @@
         window.scrollTo(0, 0);
       }
       function logout() {
+        closeContext();
+        $('#help-dialog').close();
+        document.body.classList.remove('workspace-open');
         save();
         clearTimeout(window.toastTimer);
         $('#toast').classList.remove('visible');
@@ -3754,6 +4361,46 @@
       $('#login-agent').onclick = () => login('agent');
       $('#logout').onclick = logout;
       $('#session-nav').onclick = () => switchView(sessionRole);
+
+      function showAgentPanel(panel) {
+        $('.agent-grid').dataset.panel = panel;
+        $$('[data-agent-panel]').forEach((b) => {
+          b.classList.toggle('active', b.dataset.agentPanel === panel);
+          b.setAttribute('aria-pressed', b.dataset.agentPanel === panel ? 'true' : 'false');
+        });
+      }
+      $$('[data-agent-panel]').forEach((b) => (b.onclick = () => showAgentPanel(b.dataset.agentPanel)));
+      function closeContext() {
+        if ($('#context-dialog').open) $('#context-dialog').close();
+      }
+      $('#context-open').onclick = () => {
+        $('#context-content').append($('.persona-test-bar'), $('.client-context'));
+        $('#context-dialog').showModal();
+      };
+      $('#context-dialog').addEventListener('close', () => {
+        $('#client-view').insertBefore($('.persona-test-bar'), $('.client-grid'));
+        $('.client-grid').append($('.client-context'));
+        $('#context-open').focus();
+      });
+      $('#context-close').onclick = closeContext;
+      $('#context-content').addEventListener('click', (e) => {
+        if (e.target.closest('button')) closeContext();
+      });
+      $('#help-options').onclick = () => $('#help-dialog').showModal();
+      $('#help-close').onclick = () => $('#help-dialog').close();
+      $$('[data-help]').forEach(
+        (b) =>
+          (b.onclick = () => {
+            let choice = b.dataset.help;
+            $('#help-dialog').close();
+            if (choice === 'human') send('Quero falar com uma pessoa.', 'human');
+            else if (choice === 'operation') send('Quero consultar minha operação.', 'operation');
+            else if (choice === 'documents') send('Onde encontro meu informe de rendimentos?', 'documents');
+            else send('Quero entender as diferenças entre os produtos.', 'education');
+            $('#client-input').focus();
+          }),
+      );
+      $('#help-dialog').addEventListener('close', () => $('#help-options').focus());
     </script>
   </body>
 </html>

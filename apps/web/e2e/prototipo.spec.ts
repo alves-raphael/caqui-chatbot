@@ -175,9 +175,68 @@ for (const viewport of [
     await captureLayout(page, testInfo, `entrada-${viewport.name}`);
     await loginClient(page, 'C-0001');
     await captureLayout(page, testInfo, `cliente-${viewport.name}`);
-    await page.getByRole('button', { name: /Pressão de terceiro/ }).click();
+    await page
+      .getByRole('textbox', { name: 'Sua mensagem', exact: true })
+      .fill('Meu sobrinho disse que tenho que tirar tudo hoje e mandar pra ele');
+    await page.getByRole('button', { name: 'Enviar mensagem', exact: true }).click();
     await logout(page);
     await page.getByRole('button', { name: 'Entrar como atendente →', exact: true }).click();
     await captureLayout(page, testInfo, `atendente-${viewport.name}`);
+  });
+}
+
+async function openCopilotPanel(page: Page, narrow: boolean) {
+  if (narrow) {
+    await page.getByRole('button', { name: 'Copiloto', exact: true }).click();
+  }
+}
+
+for (const viewport of [
+  { width: 1165, height: 600 },
+  { width: 390, height: 740 },
+  { width: 390, height: 440 },
+  { width: 580, height: 375 },
+]) {
+  test(`chat rolável e compositor acessível em ${viewport.width}x${viewport.height}`, async ({
+    page,
+  }, testInfo) => {
+    await page.setViewportSize(viewport);
+    await loginClient(page);
+    const input = page.getByRole('textbox', { name: 'Sua mensagem', exact: true });
+    const human = page.getByRole('button', { name: '♧ Falar com uma pessoa', exact: true });
+    const help = page.getByRole('button', { name: 'Ver opções de ajuda', exact: true });
+    await expect(input).toBeInViewport({ ratio: 1 });
+    await expect(human).toBeInViewport({ ratio: 1 });
+    await expect(help).toBeInViewport({ ratio: 1 });
+    await input.fill('Quero investir R$ 50 mil para minha aposentadoria. O que você recomenda?');
+    await page.getByRole('button', { name: 'Enviar mensagem', exact: true }).click();
+    const chat = page.locator('#client-chat');
+    await expect(chat).toContainText('R$ 50 mil');
+    await expect.poll(() => chat.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+    await chat.hover();
+    await page.mouse.wheel(0, -10000);
+    await expect.poll(() => chat.evaluate((element) => element.scrollTop)).toBe(0);
+    await page.mouse.wheel(0, 10000);
+    await expect.poll(() => chat.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+    await expect(input).toBeInViewport({ ratio: 1 });
+    await expect(human).toBeInViewport({ ratio: 1 });
+    const pageHeight = await page.evaluate(() => document.documentElement.scrollHeight);
+    expect(pageHeight).toBeLessThanOrEqual(viewport.height);
+    await page.screenshot({ path: testInfo.outputPath('chat-compositor.png') });
+    await help.click();
+    await page.getByRole('button', { name: /Consultar uma operação/ }).click();
+    await expect(input).toBeFocused();
+    await human.click();
+    await logout(page);
+    await page.getByRole('button', { name: 'Entrar como atendente →', exact: true }).click();
+    await openCopilotPanel(page, viewport.width <= 940);
+    const review = page.getByRole('checkbox', { name: /Revisei o texto/ });
+    await review.scrollIntoViewIfNeeded();
+    await expect(review).toBeInViewport({ ratio: 1 });
+    const send = page.getByRole('button', { name: 'Revisar e enviar · simulação', exact: true });
+    await send.scrollIntoViewIfNeeded();
+    await expect(send).toBeInViewport({ ratio: 1 });
+    await expect(send).toBeDisabled();
+    await page.screenshot({ path: testInfo.outputPath('copiloto-rolavel.png') });
   });
 }

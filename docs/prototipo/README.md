@@ -14,6 +14,8 @@ O protótipo tem entradas separadas para Cliente e Atendente, consulta com fonte
 
 Para testar a orientação de investimentos, escreva “Quero investir R$ 50 mil pensando na aposentadoria. O que você recomenda?”. O assistente reconhece valor e objetivo e oferece explicação dos produtos ou encaminhamento simulado ao especialista, sem indicar um investimento. “Falar com uma pessoa” continua disponível; suspeita de golpe recebe prioridade de segurança.
 
+A conversa e os painéis têm rolagem própria, mantendo o campo de mensagem e as opções de ajuda acessíveis em janelas baixas. No celular, “Conta e exemplos de teste” abre os dados da persona; na mesa de atendimento, os botões “Fila”, “Conversa” e “Copiloto” alternam o painel visível.
+
 Os protocolos ficam no `localStorage` desse navegador, separados pelo ID do cliente. “Reiniciar demonstração” apaga somente o estado da persona atual. O isolamento é de interface e contexto; qualquer pessoa com acesso ao navegador pode inspecionar os dados públicos fictícios no arquivo e no armazenamento. Use apenas dados de demonstração: login, isolamento e sanitização ilustrativos não substituem controles de segurança de produção.
 
 ## Origem e edição
