@@ -1,0 +1,21 @@
+# segredos: nunca vão para o repositório
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# respostas geradas localmente pelo checador
+respostas*.jsonl
+
+# sistema e editores
+.DS_Store
+.idea/
+.vscode/
+
+# dependências e builds comuns
+node_modules/
+dist/
+build/
+.venv/
+__pycache__/

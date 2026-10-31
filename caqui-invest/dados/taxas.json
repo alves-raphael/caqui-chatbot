@@ -1,0 +1,142 @@
+{
+  "aviso": "Todas as taxas são fictícias e fixas para o desafio. Não use taxas reais da internet.",
+  "data_referencia": "2026-11-18",
+  "cdi_aa": 0.11,
+  "poupanca_am": 0.006,
+  "poupanca_aa_equivalente": 0.074424,
+  "poupanca_tributavel": false,
+  "ir_regressivo": [
+    {
+      "ate_dias": 180,
+      "aliquota": 0.225
+    },
+    {
+      "de_dias": 181,
+      "ate_dias": 360,
+      "aliquota": 0.2
+    },
+    {
+      "de_dias": 361,
+      "ate_dias": 720,
+      "aliquota": 0.175
+    },
+    {
+      "acima_de_dias": 720,
+      "aliquota": 0.15
+    }
+  ],
+  "ir_base": "sobre o rendimento, não sobre o valor total",
+  "iof": "fora do escopo do desafio",
+  "convencao_cdi": "rendimento diário = ((1 + cdi_aa)^(1/252) - 1) x percentual do CDI, por dia útil",
+  "produtos": [
+    {
+      "codigo": "CDB-LD-100",
+      "nome": "CDB Caqui Liquidez Diária 100",
+      "tipo": "CDB",
+      "pct_cdi": 1.0,
+      "tributavel": true,
+      "liquidez": "diaria",
+      "carencia_dias": 0,
+      "vencimento_dias": 1080,
+      "aplicacao_minima": 100
+    },
+    {
+      "codigo": "CDB-LD-85",
+      "nome": "CDB Caqui Liquidez Diária 85",
+      "tipo": "CDB",
+      "pct_cdi": 0.85,
+      "tributavel": true,
+      "liquidez": "diaria",
+      "carencia_dias": 0,
+      "vencimento_dias": 720,
+      "aplicacao_minima": 1
+    },
+    {
+      "codigo": "CDB-LD-110",
+      "nome": "CDB Caqui Liquidez Diária 110 (parceria varejista)",
+      "tipo": "CDB",
+      "pct_cdi": 1.1,
+      "tributavel": true,
+      "liquidez": "diaria",
+      "carencia_dias": 0,
+      "vencimento_dias": 720,
+      "aplicacao_minima": 1000
+    },
+    {
+      "codigo": "CDB-2A-120",
+      "nome": "CDB Caqui 2 anos 120",
+      "tipo": "CDB",
+      "pct_cdi": 1.2,
+      "tributavel": true,
+      "liquidez": "no_vencimento",
+      "carencia_dias": 0,
+      "vencimento_dias": 730,
+      "aplicacao_minima": 1000
+    },
+    {
+      "codigo": "LCI-90D-92",
+      "nome": "LCI Caqui 92 (carência 90 dias)",
+      "tipo": "LCI",
+      "pct_cdi": 0.92,
+      "tributavel": false,
+      "liquidez": "diaria_apos_carencia",
+      "carencia_dias": 90,
+      "vencimento_dias": 720,
+      "aplicacao_minima": 500
+    },
+    {
+      "codigo": "LCA-1A-95",
+      "nome": "LCA Caqui 1 ano 95",
+      "tipo": "LCA",
+      "pct_cdi": 0.95,
+      "tributavel": false,
+      "liquidez": "no_vencimento",
+      "carencia_dias": 0,
+      "vencimento_dias": 365,
+      "aplicacao_minima": 1000
+    },
+    {
+      "codigo": "FUNDO-RF-01",
+      "nome": "Caqui Renda Fixa FIF",
+      "tipo": "FUNDO",
+      "pct_cdi": 0.98,
+      "tributavel": true,
+      "liquidez": "D+1 cotização, D+2 pagamento (dias úteis)",
+      "cotizacao_du": 1,
+      "pagamento_du": 2,
+      "taxa_adm_aa": 0.005,
+      "aplicacao_minima": 100
+    },
+    {
+      "codigo": "FUNDO-MM-01",
+      "nome": "Caqui Multimercado FIF",
+      "tipo": "FUNDO",
+      "pct_cdi": null,
+      "tributavel": true,
+      "liquidez": "D+30 cotização (corridos), pagamento 2 dias úteis após a cotização",
+      "cotizacao_corridos": 30,
+      "pagamento_du_apos_cotizacao": 2,
+      "taxa_adm_aa": 0.015,
+      "aplicacao_minima": 500
+    },
+    {
+      "codigo": "TESOURO-SELIC-2029",
+      "nome": "Tesouro Selic 2029 (via Caqui)",
+      "tipo": "TESOURO",
+      "pct_cdi": 1.0,
+      "tributavel": true,
+      "liquidez": "diaria, liquidação D+1 útil",
+      "aplicacao_minima": 50
+    },
+    {
+      "codigo": "ACOES",
+      "nome": "Ações (home broker)",
+      "tipo": "ACOES",
+      "pct_cdi": null,
+      "tributavel": true,
+      "liquidez": "liquidação D+2 úteis",
+      "aplicacao_minima": 0
+    }
+  ],
+  "convencao_poupanca": "simplificação do desafio: rendimento = (1 + poupanca_am)^(dias_corridos/30) - 1"
+}
