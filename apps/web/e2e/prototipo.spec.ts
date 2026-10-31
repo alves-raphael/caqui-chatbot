@@ -78,8 +78,9 @@ test('consulta local mostra fontes e previsão sem confirmar liquidação', asyn
   expect(orange).toBe('#d94e1b');
   await page.getByRole('button', { name: 'Acompanhar resgate', exact: true }).click();
   const chat = page.locator('#client-chat');
-  await expect(chat).toContainText('previsão de pagamento 18/11/2026');
-  await expect(chat).toContainText('Previsão não confirma liquidação');
+  await expect(chat).toContainText('a previsão calculada é 18/11/2026');
+  await expect(chat).toContainText('Essa é uma previsão, não a confirmação de pagamento');
+  await chat.getByText('Ver fontes desta resposta', { exact: true }).click();
   await expect(chat.getByRole('link', { name: /KB-006/ })).toHaveAttribute(
     'href',
     'https://github.com/avenue-community/caqui-invest/blob/main/dados/base_conhecimento/KB-006.md',
@@ -105,6 +106,8 @@ test('revisão do caso de Camila preserva histórico e não envia resposta para 
   const review = page.getByRole('checkbox', { name: /Revisei o texto/ });
   const draft = page.getByRole('textbox', { name: 'Rascunho para o cliente', exact: true });
   await expect(send).toBeDisabled();
+  await expect(review).toBeDisabled();
+  await page.getByRole('button', { name: 'Assumir atendimento · simulação', exact: true }).click();
   await review.check();
   await expect(send).toBeEnabled();
   await draft.fill('Camila, resposta revisada de demonstração.');
@@ -190,6 +193,180 @@ async function openCopilotPanel(page: Page, narrow: boolean) {
     await page.getByRole('button', { name: 'Copiloto', exact: true }).click();
   }
 }
+
+async function sendClientMessage(page: Page, message: string) {
+  await page.getByRole('textbox', { name: 'Sua mensagem', exact: true }).fill(message);
+  await page.getByRole('button', { name: 'Enviar mensagem', exact: true }).click();
+}
+
+async function savedTickets(page: Page, clientId = 'C-0002') {
+  return page.evaluate((id) => {
+    const saved = JSON.parse(localStorage.getItem(`caqui-demo-v2:${id}`) ?? '{"tickets":[]}') as {
+      tickets: { id: string; created: string; priority: string; handling: string }[];
+    };
+    return saved.tickets.map(({ id, created, priority, handling }) => ({ id, created, priority, handling }));
+  }, clientId);
+}
+
+test('protocolo precede a oferta opcional e recusar a IA preserva registro e prioridade', async ({
+  page,
+}) => {
+  await loginClient(page, 'C-0002');
+  await page.getByRole('button', { name: '♧ Falar com uma pessoa', exact: true }).click();
+  const before = await savedTickets(page);
+  expect(before).toHaveLength(1);
+  expect(before[0]).toMatchObject({ priority: 'Normal', handling: 'waiting' });
+  const messages = await page.locator('#client-chat .assistant').allTextContents();
+  const registered = messages.findIndex((text) => text.includes('Protocolo salvo neste navegador'));
+  const offered = messages.findIndex((text) => text.includes('Sou a IA desta demonstração'));
+  expect(registered).toBeGreaterThanOrEqual(0);
+  expect(offered).toBeGreaterThan(registered);
+  await expect(page.locator('#client-chat')).toContainText('não tenho uma posição ou tempo real de espera');
+  await page.getByRole('button', { name: 'Prefiro só aguardar', exact: true }).click();
+  await expect(page.locator('#client-chat')).toContainText('Seu protocolo e sua prioridade permanecem');
+  await sendClientMessage(page, 'Como funciona o imposto?');
+  expect(await savedTickets(page)).toEqual(before);
+  await expect(page.locator('#client-chat .message').last()).toHaveClass(/user/);
+  await page.reload();
+  await loginClient(page, 'C-0002');
+  expect(await savedTickets(page)).toEqual(before);
+  await expect(page.locator('#waiting-strip')).toContainText(before[0]!.id);
+});
+
+test('ajuda reaproveita o histórico e só encerra o protocolo com confirmação explícita', async ({ page }) => {
+  await loginClient(page, 'C-0002');
+  await sendClientMessage(page, 'Como funciona o imposto?');
+  await page.getByRole('button', { name: '♧ Falar com uma pessoa', exact: true }).click();
+  const before = await savedTickets(page);
+  await page.getByRole('button', { name: 'Quero ajuda da IA enquanto aguardo', exact: true }).click();
+  await expect(page.locator('#client-chat')).toContainText('Vou partir do que você já contou');
+  await expect(page.getByRole('button', { name: 'Isso resolveu minha dúvida', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Isso resolveu minha dúvida', exact: true }).click();
+  await expect(page.locator('#client-chat')).toContainText('Até você confirmar, ele continua aberto');
+  expect(await savedTickets(page)).toEqual(before);
+  await page.getByRole('button', { name: 'Não, manter meu atendimento', exact: true }).click();
+  expect(await savedTickets(page)).toEqual(before);
+  await page.getByRole('button', { name: 'Ajuda opcional da IA', exact: true }).click();
+  await page.getByRole('button', { name: 'Quero ajuda da IA enquanto aguardo', exact: true }).click();
+  await page.getByRole('button', { name: 'Isso resolveu minha dúvida', exact: true }).click();
+  await page.getByRole('button', { name: 'Sim, encerrar este protocolo', exact: true }).click();
+  expect(await savedTickets(page)).toEqual([{ ...before[0], handling: 'closed' }]);
+  await expect(page.locator('#waiting-strip')).toBeHidden();
+  await expect(page.locator('#client-chat')).toContainText(
+    'Sua conta e seus investimentos não foram alterados',
+  );
+  await logout(page);
+  await page.getByRole('button', { name: 'Entrar como atendente →', exact: true }).click();
+  await expect(page.locator('#ticket-list')).toContainText('Encerrado pelo cliente · simulado');
+  await expect(
+    page.getByRole('button', { name: 'Assumir atendimento · simulação', exact: true }),
+  ).toHaveCount(0);
+});
+
+test('Jonas recebe a pesquisa e assumir interrompe a IA sem misturar clientes', async ({
+  page,
+}, testInfo) => {
+  await loginClient(page, 'C-0002');
+  await page.getByRole('button', { name: '♧ Falar com uma pessoa', exact: true }).click();
+  await page.getByRole('button', { name: 'Quero ajuda da IA enquanto aguardo', exact: true }).click();
+  await sendClientMessage(page, 'Quanto tenho na conta?');
+  await expect(page.locator('#client-chat')).toContainText(/R\$\s*3\.420,55/);
+  await logout(page);
+  await loginClient(page, 'C-0003');
+  await expect(page.locator('#client-chat')).not.toContainText(/R\$\s*3\.420,55/);
+  await expect(page.locator('#waiting-strip')).toBeHidden();
+  await logout(page);
+  await page.getByRole('button', { name: 'Entrar como atendente →', exact: true }).click();
+  await expect(page.locator('#agent-chat')).toContainText('Quanto tenho na conta?');
+  await expect(page.locator('#copilot-content')).toContainText(/3\.420,55/);
+  await expect(page.getByRole('checkbox', { name: /Revisei o texto/ })).toBeDisabled();
+  await page.getByRole('button', { name: 'Assumir atendimento · simulação', exact: true }).click();
+  await expect(page.getByRole('checkbox', { name: /Revisei o texto/ })).toBeEnabled();
+  await page.screenshot({ path: testInfo.outputPath('pesquisa-no-atendimento.png') });
+  await logout(page);
+  await loginClient(page, 'C-0002');
+  await expect(page.locator('#waiting-strip')).toContainText('Jonas assumiu');
+  const answers = await page.locator('#client-chat .assistant').count();
+  await sendClientMessage(page, 'Como funciona o imposto?');
+  await expect(page.locator('#client-chat .assistant')).toHaveCount(answers);
+  await expect(page.locator('#client-chat .message').last()).toHaveClass(/user/);
+  await expect(page.getByRole('button', { name: 'Ajuda opcional da IA', exact: true })).toHaveCount(0);
+  expect((await savedTickets(page))[0]?.handling).toBe('human');
+});
+
+test('consulta sem resposta segura mantém o protocolo e registra o limite', async ({ page }) => {
+  await loginClient(page, 'C-0002');
+  await page.getByRole('button', { name: '♧ Falar com uma pessoa', exact: true }).click();
+  const before = await savedTickets(page);
+  await page.getByRole('button', { name: 'Quero ajuda da IA enquanto aguardo', exact: true }).click();
+  await sendClientMessage(page, 'Qual é a cor da lua?');
+  await expect(page.locator('#client-chat')).toContainText('Não tenho uma resposta segura para esse ponto');
+  expect(await savedTickets(page)).toEqual(before);
+  await expect(page.getByRole('button', { name: 'Sim, encerrar este protocolo', exact: true })).toHaveCount(
+    0,
+  );
+});
+
+test('fora do horário mantém retorno simulado e golpe interrompe a consulta opcional', async ({ page }) => {
+  await loginClient(page, 'C-0002');
+  await page.getByLabel('Relógio da demonstração · Brasília').fill('2026-11-18T23:00');
+  await page.getByRole('button', { name: '♧ Falar com uma pessoa', exact: true }).click();
+  await expect(page.locator('#client-chat')).toContainText('Agora estamos fora do horário humano');
+  const before = await savedTickets(page);
+  await page.getByRole('button', { name: 'Quero ajuda da IA enquanto aguardo', exact: true }).click();
+  await sendClientMessage(page, 'Um gerente me ligou pedindo o código do SMS');
+  await expect(page.locator('#waiting-strip')).toContainText('Segurança 24h');
+  expect(await savedTickets(page)).toEqual([{ ...before[0], priority: 'Segurança 24h' }]);
+  await expect(page.getByRole('button', { name: 'Ajuda opcional da IA', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Isso resolveu minha dúvida', exact: true })).toHaveCount(0);
+});
+
+test('Marta vê conta e todas as posições separadas do resgate e entende a aplicação de 20 mil', async ({
+  page,
+}, testInfo) => {
+  await loginClient(page, 'C-0001');
+  await expect(page.locator('.balance')).toHaveText(/R\$\s*1\.250,00/);
+  await expect(page.locator('.invested-total')).toHaveText(/R\$\s*61\.021,15/);
+  await expect(page.locator('.position-row')).toHaveCount(2);
+  await expect(page.locator('.invested-card')).toContainText(/40\.791,24/);
+  await expect(page.locator('.invested-card')).toContainText(/20\.229,91/);
+  await expect(page.locator('.operations')).toContainText('Resgates em andamento');
+  await sendClientMessage(page, 'Onde está meu dinheiro?');
+  const overview = page.locator('#client-chat .assistant').last();
+  await expect(overview).toContainText('Na conta');
+  await expect(overview).toContainText('Nos investimentos');
+  await expect(overview).toContainText('Resgates em andamento');
+  await expect(overview).toContainText(/1\.250,00/);
+  await expect(overview).toContainText(/40\.791,24/);
+  await expect(overview).toContainText(/20\.229,91/);
+  await expect(overview).toContainText(/40\.000,00/);
+  await expect(overview).toContainText('Não somei esses pedidos ao saldo nem aos investimentos');
+  await expect(overview).toContainText('18/11/2026');
+  await expect(overview).toContainText('não é uma consulta em tempo real');
+  await expect(overview.locator('details')).not.toHaveAttribute('open', '');
+  await expect(overview.getByRole('link').first()).toBeHidden();
+  await overview.locator('summary').click();
+  await expect(overview).toContainText('OP-10005');
+  await expect(overview).not.toContainText('C-0002');
+  await page.screenshot({ path: testInfo.outputPath('panorama-financeiro.png') });
+  await sendClientMessage(page, 'E os R$ 20 mil?');
+  const application = page.locator('#client-chat .assistant').last();
+  await expect(application).toContainText('LCI Caqui 92');
+  await expect(application).toContainText('05/10/2026');
+  await expect(application).toContainText('A aplicação foi concluída');
+  await expect(application).toContainText('não é um depósito disponível no saldo da conta');
+  await expect(application).toContainText(/20\.229,91/);
+  await application.locator('summary').click();
+  await expect(application).toContainText('OP-10006');
+  await expect(application).not.toContainText('OP-10005');
+  expect(await savedTickets(page, 'C-0001')).toEqual([]);
+  await expect(page.getByRole('button', { name: 'Falar com especialista', exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: '♧ Falar com uma pessoa', exact: true }).click();
+  expect((await savedTickets(page, 'C-0001'))[0]?.priority).toBe('Prioritário');
+  await expect(
+    page.getByRole('button', { name: 'Quero ajuda da IA enquanto aguardo', exact: true }),
+  ).toHaveCount(0);
+});
 
 for (const viewport of [
   { width: 1165, height: 600 },

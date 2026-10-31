@@ -1,5 +1,4 @@
 <!doctype html>
-<!-- Caqui Atende: HTML editável e autocontido. Login, permissões e atendimento simulados. Dados sintéticos do repositório. Sem credenciais/backend. Fontes web opcionais removidas; links de referência requerem internet. -->
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
@@ -2255,6 +2254,144 @@
           display: none;
         }
       }
+
+      /* Optional AI while waiting: same queue, explicit human ownership and consent. */
+      .waiting-strip {
+        flex: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 7px 20px;
+        background: #eef5ec;
+        border-top: 1px solid #d6e3ce;
+        font-size: 10px;
+      }
+      .waiting-strip button {
+        border: 0;
+        background: transparent;
+        color: var(--green);
+        font-size: 10px;
+        text-decoration: underline;
+        white-space: nowrap;
+      }
+      .wait-choices {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        margin-top: 12px;
+      }
+      .wait-choices button {
+        border: 1px solid #bdccba;
+        border-radius: 7px;
+        background: white;
+        padding: 9px 11px;
+        font-size: 11px;
+        color: var(--green);
+      }
+      .wait-choices button:first-child {
+        background: #eef5ec;
+        font-weight: 600;
+      }
+      .message.system .bubble {
+        background: #f1f3ed;
+        border: 1px dashed #ced8c7;
+        font-size: 11px;
+      }
+      .assume-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+      .workspace-open .chat-panel:has(.waiting-strip:not([hidden])) .quick-prompts {
+        display: none;
+      }
+      @media (max-width: 720px) {
+        .waiting-strip {
+          font-size: 9px;
+          padding: 6px 10px;
+        }
+        .waiting-strip button {
+          font-size: 9px;
+          max-width: 90px;
+          white-space: normal;
+        }
+        .wait-choices button {
+          font-size: 11px;
+        }
+      }
+
+      .message-sources {
+        display: block !important;
+        margin-top: 10px;
+      }
+      .message-sources summary {
+        font-size: 10px;
+        cursor: pointer;
+        color: var(--green);
+        margin-bottom: 5px;
+      }
+      .message-sources .source-chip {
+        display: inline-block;
+        margin: 3px 4px 0 0;
+      }
+
+      .invested-card {
+        padding: 20px 21px;
+      }
+      .invested-card h2 {
+        font-size: 14px;
+      }
+      .invested-total {
+        display: block;
+        font:
+          700 25px Manrope,
+          Arial,
+          sans-serif;
+        margin-top: 12px;
+      }
+      .investment-note {
+        font-size: 11px;
+        line-height: 1.65;
+        color: var(--muted);
+        margin: 8px 0;
+      }
+      .position-row {
+        padding: 14px 0;
+        border-top: 1px solid var(--line);
+        font-size: 11px;
+      }
+      .position-row > strong {
+        display: block;
+        margin-bottom: 8px;
+      }
+      .position-row > div {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        line-height: 1.8;
+      }
+      .position-row > small {
+        display: block;
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 9px;
+      }
+      .movement-group {
+        font-size: 12px;
+        margin-top: 20px;
+      }
+      .account-source:after {
+        content: ' · Retrato do case em 18/11/2026, não ao vivo';
+        display: block;
+        margin-top: 4px;
+      }
+      @media (max-width: 720px) {
+        .invested-card {
+          grid-column: span 2;
+        }
+      }
     </style>
   </head>
   <body>
@@ -2394,6 +2531,7 @@
                 aria-live="polite"
                 aria-label="Conversa com assistente"
               ></div>
+              <div id="waiting-strip" class="waiting-strip" role="status" hidden></div>
               <div class="quick-prompts" id="quick-prompts">
                 <button data-prompt="O que é liquidez diária?">Entender investimentos</button
                 ><button data-prompt="Onde está meu resgate?">Acompanhar resgate</button
@@ -2424,11 +2562,12 @@
                 <div class="row">
                   <span class="eyebrow">SUA CONTA DE DEMONSTRAÇÃO</span><span aria-hidden="true">↗</span>
                 </div>
-                <p class="balance-label">Saldo em conta <span class="tag">sintético</span></p>
+                <p class="balance-label">Disponível na conta <span class="tag">sintético</span></p>
                 <strong class="balance">R$ 4.231,11</strong>
                 <p class="account-id">Celina Teixeira · CPF ***.***.940-**</p>
                 <div class="account-source">Fonte: clientes.json · C-0007</div>
               </section>
+              <section class="card invested-card" aria-label="Investimentos desta conta"></section>
               <section class="card operations">
                 <div class="row">
                   <h2>Últimas movimentações</h2>
@@ -3406,6 +3545,96 @@
             ],
           },
         ],
+        positions: [
+          {
+            id_posicao: 'P-0001',
+            id_cliente: 'C-0001',
+            produto: 'CDB-LD-110',
+            data_aplicacao: '2026-09-16',
+            valor_aplicado_brl: '40000.0',
+            taxa_contratada: '110% do CDI',
+            vencimento: '2028-09-05',
+            saldo_bruto_brl: '40791.24',
+            data_referencia: '2026-11-18',
+          },
+          {
+            id_posicao: 'P-0002',
+            id_cliente: 'C-0001',
+            produto: 'LCI-90D-92',
+            data_aplicacao: '2026-10-05',
+            valor_aplicado_brl: '20000.0',
+            taxa_contratada: '92% do CDI',
+            vencimento: '2028-09-24',
+            saldo_bruto_brl: '20229.91',
+            data_referencia: '2026-11-18',
+          },
+          {
+            id_posicao: 'P-0003',
+            id_cliente: 'C-0002',
+            produto: 'CDB-LD-100',
+            data_aplicacao: '2026-05-21',
+            valor_aplicado_brl: '15000.0',
+            taxa_contratada: '100% do CDI',
+            vencimento: '2029-05-05',
+            saldo_bruto_brl: '15810.03',
+            data_referencia: '2026-11-18',
+          },
+          {
+            id_posicao: 'P-0004',
+            id_cliente: 'C-0002',
+            produto: 'ACOES',
+            data_aplicacao: '2025-08-11',
+            valor_aplicado_brl: '8000.0',
+            taxa_contratada: 'n/a',
+            vencimento: '',
+            saldo_bruto_brl: '7151.09',
+            data_referencia: '2026-11-18',
+          },
+          {
+            id_posicao: 'P-0005',
+            id_cliente: 'C-0002',
+            produto: 'FUNDO-RF-01',
+            data_aplicacao: '2025-11-24',
+            valor_aplicado_brl: '12000.0',
+            taxa_contratada: '98% do CDI',
+            vencimento: '',
+            saldo_bruto_brl: '13244.71',
+            data_referencia: '2026-11-18',
+          },
+          {
+            id_posicao: 'P-0006',
+            id_cliente: 'C-0002',
+            produto: 'TESOURO-SELIC-2029',
+            data_aplicacao: '2024-11-27',
+            valor_aplicado_brl: '5000.0',
+            taxa_contratada: '100% do CDI',
+            vencimento: '',
+            saldo_bruto_brl: '6183.5',
+            data_referencia: '2026-11-18',
+          },
+          {
+            id_posicao: 'P-0007',
+            id_cliente: 'C-0007',
+            produto: 'FUNDO-RF-01',
+            data_aplicacao: '2026-03-10',
+            valor_aplicado_brl: '25000.0',
+            taxa_contratada: '98% do CDI',
+            vencimento: '',
+            saldo_bruto_brl: '26793.34',
+            data_referencia: '2026-11-18',
+          },
+          {
+            id_posicao: 'P-0008',
+            id_cliente: 'C-0007',
+            produto: 'CDB-LD-100',
+            data_aplicacao: '2026-08-03',
+            valor_aplicado_brl: '6000.0',
+            taxa_contratada: '100% do CDI',
+            vencimento: '2029-07-18',
+            saldo_bruto_brl: '6189.28',
+            data_referencia: '2026-11-18',
+          },
+        ],
       };
     </script>
     <script>
@@ -3488,13 +3717,20 @@
             )
           )
             return 'advice';
+          if (
+            !/resgate|saque|retirei|op-\d/.test(s) &&
+            /onde.*dinheiro|cade.*dinheiro|meu dinheiro|quanto.*tenho|saldo(?: em conta| total)?|meus investimentos|quanto.*investid/.test(
+              s,
+            )
+          )
+            return 'moneyoverview';
           if (/dado ausente|nao encont|sem.*(data|registro)|nao aparece/.test(s)) return 'missing';
           if (/informe|document/.test(s)) return 'documents';
           if (/pix|transfer/.test(s)) return 'transfer';
           if (/imposto|aliquota|\bir\b|tribut/.test(s)) return 'tax';
           if (/bruto|liquido|poupanca|rendeu|rentabilidade|rendimento/.test(s)) return 'returns';
           if (/minha aplicacao|aplicacao.*conclu/.test(s)) return 'application';
-          if (/resgate|meu dinheiro|sumiu|operacao/.test(s)) return 'operation';
+          if (/resgate|meu dinheiro|sumiu|operacao|saquei|saque |retirei/.test(s)) return 'operation';
           if (/liquidez/.test(s)) return 'liquidity';
           if (/\bcdb\b/.test(s)) return 'cdb';
           if (/\blci\b|\blca\b/.test(s)) return 'lci';
@@ -3527,6 +3763,7 @@
       const firstName = () => current().nota_persona || current().nome.split(' ')[0];
       const money = (n) => Number(n).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
       const ownOperations = () => D.operations.filter((o) => o.id_cliente === currentClientId);
+      const ownPositions = () => (D.positions || []).filter((p) => p.id_cliente === currentClientId);
       const esc = (s) =>
         String(s).replace(
           /[&<>"']/g,
@@ -3661,7 +3898,12 @@
       function sourceHTML(ids = []) {
         return ids
           .map((id) => {
-            if (id.startsWith('record:')) return `<span class="source-chip">${esc(id.slice(7))}</span>`;
+            if (id.startsWith('record:')) {
+              let file = id.slice(7).split(' · ')[0];
+              return ['clientes.json', 'operacoes.csv', 'posicoes.csv'].includes(file)
+                ? `<a class="source-chip" href="https://github.com/RodolfoSilva/caqui-chatbot/blob/master/caqui-invest/dados/${file}" target="_blank" rel="noreferrer">${esc(id.slice(7))} ↗</a>`
+                : `<span class="source-chip">${esc(id.slice(7))}</span>`;
+            }
             let k = D.knowledge[id];
             return k
               ? `<a class="source-chip" href="${esc(k.url)}" target="_blank" rel="noreferrer" title="${esc(k.title)}">${id} · rev. ${nice(k.revision)} ↗</a>`
@@ -3670,7 +3912,7 @@
           .join('');
       }
       function messageHTML(m) {
-        return `<article class="message ${m.role}"><div class="message-name">${m.role === 'user' ? 'Cliente · ' + esc(firstName()) : m.role === 'human' ? 'Atendente · envio simulado' : 'Caqui Assistente'} <span>· ${esc(m.time?.slice(11, 16) || '10:00')}</span></div><div class="bubble">${esc(m.text)}${m.refs?.length ? `<div class="sources">${sourceHTML(m.refs)}</div>` : ''}${m.action === 'fraud' ? '<button class="inline-action" data-block>Simular bloqueio de acesso</button>' : ''}${m.action === 'advice' && sessionRole === 'client' ? '<div class="advice-actions"><button data-advice-education>Entender as diferenças</button><button data-advice-human>Falar com especialista</button></div>' : ''}${m.ticket ? `<span class="record-label">Contexto salvo no protocolo ${esc(m.ticket)}.</span>` : ''}</div></article>`;
+        return `<article class="message ${m.role}"><div class="message-name">${m.role === 'user' ? 'Cliente · ' + esc(firstName()) : m.role === 'human' ? 'Atendente · envio simulado' : m.role === 'system' ? 'Atualização da demonstração' : 'Caqui Assistente · IA simulada'} <span>· ${esc(m.time?.slice(11, 16) || '10:00')}</span></div><div class="bubble">${esc(m.text)}${m.refs?.length ? `<details class="sources message-sources"><summary>Ver fontes desta resposta</summary>${sourceHTML(m.refs)}</details>` : ''}${m.action === 'fraud' ? '<button class="inline-action" data-block>Simular bloqueio de acesso</button>' : ''}${m.action === 'advice' && sessionRole === 'client' ? '<div class="advice-actions"><button data-advice-education>Entender as diferenças</button><button data-advice-human>Falar com especialista</button></div>' : ''}${m.action === 'money-overview' && sessionRole === 'client' ? '<div class="wait-choices"><button data-money="investments">Ver meus investimentos</button><button data-money="resgate">Entender meu resgate</button></div>' : ''}${waitActionHTML(m)}${m.ticket ? `<span class="record-label">Contexto salvo no protocolo ${esc(m.ticket)}.</span>` : ''}</div></article>`;
       }
       function addMessage(role, text, refs = [], extra = {}) {
         let m = { role, text: R.sanitize(text), refs, time: stamp(), ...extra };
@@ -3688,9 +3930,13 @@
         return m;
       }
       function renderClient() {
+        renderWaitingStrip();
         let box = $('#client-chat');
         box.innerHTML = state.messages.map(messageHTML).join('');
         box.scrollTop = box.scrollHeight;
+        const latest = box.lastElementChild;
+        if (latest && latest.clientHeight > box.clientHeight * 0.8)
+          box.scrollTop += latest.getBoundingClientRect().top - box.getBoundingClientRect().top - 12;
         $('#queue-total').textContent = allTickets().length;
         bindDynamic();
       }
@@ -3701,6 +3947,17 @@
       function handoff(kind, reason, refs = ['KB-025', 'KB-026']) {
         let existing = state.tickets.find((x) => x.id === state.activeTicket);
         if (existing) {
+          if (existing.kind === 'fraud' && kind !== 'fraud') {
+            addMessage(
+              'system',
+              'O protocolo continua em segurança 24h, sem fila. Nenhuma equipe real foi acionada.',
+              existing.refs,
+              { ticket: existing.id },
+            );
+            return;
+          }
+          if (existing.kind === 'vulnerable' && kind !== 'fraud') kind = 'vulnerable';
+          existing.waitStage = 'disabled';
           existing.kind = kind;
           existing.reason = reason;
           existing.priority =
@@ -3742,6 +3999,9 @@
           created: stamp(),
           updated: stamp(),
           refs,
+          handling: 'waiting',
+          waitStage: 'none',
+          waitResearch: [],
         };
         state.tickets.unshift(t);
         state.activeTicket = id;
@@ -3754,8 +4014,290 @@
             : 'Agora estamos fora do horário humano. Retorno previsto a partir das 8h; demandas não urgentes têm prazo de até 7 dias corridos.';
         let text = `${persisted ? 'Protocolo salvo neste navegador' : 'Não foi possível salvar de forma persistente; protocolo disponível apenas nesta sessão'}: ${id}.\n\n${reason}\n\n${schedule}${!urgent && businessOpen() ? ' Demandas não urgentes: até 7 dias corridos.' : ''}\n\nO histórico sanitizado acompanha o protocolo. Nenhuma pessoa real foi acionada.`;
         addMessage('assistant', text, refs, { ticket: id, action: urgent ? 'fraud' : null });
+        if (waitEligible(t)) offerWaitHelp(t);
         renderAgent();
       }
+
+      function activeTicket() {
+        return state.tickets.find((t) => t.id === state.activeTicket);
+      }
+      function humanOwns(t) {
+        return !!t && (t.handling === 'human' || (!t.handling && t.status === 'Respondido · simulado'));
+      }
+      function waitEligible(t) {
+        return (
+          !!t &&
+          !humanOwns(t) &&
+          t.handling !== 'closed' &&
+          current().idade < 60 &&
+          t.priority === 'Normal' &&
+          ['human', 'missing', 'delay', 'unknown', 'limit'].includes(t.kind)
+        );
+      }
+      function waitActionHTML(m) {
+        const t = activeTicket();
+        if (sessionRole !== 'client' || !t || m.ticket !== t.id || !waitEligible(t)) return '';
+        let controls = '';
+        if (
+          m.action === 'wait-offer' &&
+          ['offered', 'declined'].includes(t.waitStage) &&
+          m === state.messages.filter((x) => x.action === 'wait-offer').at(-1)
+        )
+          controls =
+            '<button data-wait="accept">Quero ajuda da IA enquanto aguardo</button><button data-wait="decline">Prefiro só aguardar</button>';
+        if (
+          m.action === 'wait-result' &&
+          t.waitStage === 'answered' &&
+          m === state.messages.filter((x) => x.action === 'wait-result').at(-1)
+        )
+          controls =
+            '<button data-wait="solved">Isso resolveu minha dúvida</button><button data-wait="decline">Ainda preciso da pessoa</button>';
+        if (
+          m.action === 'wait-confirm' &&
+          t.waitStage === 'confirm' &&
+          m === state.messages.filter((x) => x.action === 'wait-confirm').at(-1)
+        )
+          controls =
+            '<button data-wait="close">Sim, encerrar este protocolo</button><button data-wait="decline">Não, manter meu atendimento</button>';
+        return controls ? '<div class="wait-choices">' + controls + '</div>' : '';
+      }
+      function renderWaitingStrip() {
+        let box = $('#waiting-strip');
+        if (!box) return;
+        let t = activeTicket();
+        box.hidden = sessionRole !== 'client' || !t;
+        if (box.hidden) return;
+        box.innerHTML = `<span><b>${esc(t.id)}</b> · ${humanOwns(t) ? 'Jonas assumiu · simulado' : t.kind === 'fraud' ? 'Segurança 24h · sem fila simulada' : esc(t.status)}</span>${waitEligible(t) ? '<button id="wait-resume">Ajuda opcional da IA</button>' : ''}`;
+        if ($('#wait-resume')) $('#wait-resume').onclick = () => offerWaitHelp(t);
+      }
+      function offerWaitHelp(t) {
+        if (!waitEligible(t)) return;
+        t.waitStage = 'offered';
+        addMessage(
+          'assistant',
+          'Seu pedido de atendimento já está registrado. Sou a IA desta demonstração, ainda não um atendente humano. Se quiser, posso consultar sua dúvida enquanto você aguarda, usando o que você já contou.\n\nÉ opcional: aceitar, recusar ou não responder não muda seu protocolo, a ordem de registro nem sua prioridade. A fila é simulada; não tenho uma posição ou tempo real de espera para informar.',
+          ['KB-025', 'KB-026'],
+          { ticket: t.id, action: 'wait-offer' },
+        );
+      }
+      function waitChoice(choice) {
+        const t = activeTicket();
+        if (!t || sessionRole !== 'client' || humanOwns(t) || t.handling === 'closed') return;
+        if (choice === 'decline') {
+          t.waitStage = 'declined';
+          t.waitOutcome = 'Cliente prefere continuar aguardando atendimento; protocolo mantido.';
+          addMessage(
+            'system',
+            'Tudo bem. Seu protocolo e sua prioridade permanecem. A consulta da IA foi pausada; o atendimento simulado continua sem você repetir o contexto.',
+            [],
+            { ticket: t.id },
+          );
+          renderAgent();
+          return;
+        }
+        if (!waitEligible(t)) return;
+        if (choice === 'accept') {
+          t.waitStage = 'active';
+          t.waitOutcome = 'Consulta opcional autorizada; aguardando resolução.';
+          addMessage('user', 'Quero ajuda opcional da IA enquanto aguardo, sem cancelar meu atendimento.');
+          let known = state.messages
+            .filter(
+              (m) =>
+                m.role === 'user' &&
+                m.text !== 'Quero ajuda opcional da IA enquanto aguardo, sem cancelar meu atendimento.',
+            )
+            .reverse()
+            .find((m) => {
+              let k = R.route(m.text);
+              return (
+                k === 'operation' ||
+                k === 'application' ||
+                k === 'balance' ||
+                k === 'moneyoverview' ||
+                !!FAQ[k]
+              );
+            });
+          if (known) {
+            addMessage(
+              'assistant',
+              'Vou partir do que você já contou, sem pedir que repita. Continuo sendo a IA, e seu atendimento permanece registrado.',
+              [],
+              { ticket: t.id },
+            );
+            answerWhileWaiting(
+              t,
+              known.text,
+              R.route(known.text),
+              known.text.match(/OP-\d+/i)?.[0]?.toUpperCase(),
+            );
+          } else
+            addMessage(
+              'assistant',
+              'Pode descrever sua dúvida no campo abaixo. Se já trouxe algum detalhe, ele está no histórico — não precisa repetir. Por exemplo: consultar um resgate, entender um imposto ou localizar um documento. Seu protocolo continua aberto.',
+              [],
+              { ticket: t.id },
+            );
+          return;
+        }
+        if (choice === 'solved') {
+          if (!['answered', 'active', 'confirm'].includes(t.waitStage)) return;
+          t.waitStage = 'confirm';
+          t.waitOutcome = 'Cliente sinalizou solução; falta consentimento explícito para encerrar.';
+          addMessage('user', 'A explicação resolveu minha dúvida.');
+          addMessage(
+            'assistant',
+            'Que bom que a explicação ajudou. Você confirma que quer encerrar apenas este protocolo de atendimento simulado? Até você confirmar, ele continua aberto. Isso não encerra sua conta nem movimenta dinheiro.',
+            [],
+            { ticket: t.id, action: 'wait-confirm' },
+          );
+          return;
+        }
+        if (choice === 'close') {
+          if (t.waitStage !== 'confirm') return;
+          addMessage('user', 'Confirmo encerrar este protocolo de atendimento simulado.');
+          t.handling = 'closed';
+          t.waitStage = 'closed';
+          t.waitOutcome = 'Encerramento confirmado explicitamente pelo cliente após solução.';
+          t.status = 'Encerrado pelo cliente · simulado';
+          addMessage(
+            'system',
+            'Protocolo ' +
+              t.id +
+              ' encerrado com sua confirmação. O histórico e as fontes foram preservados. Sua conta e seus investimentos não foram alterados. Você pode pedir novo atendimento a qualquer momento.',
+            [],
+            { ticket: t.id },
+          );
+          state.activeTicket = null;
+          save();
+          renderClient();
+          renderAgent();
+        }
+      }
+      function answerWhileWaiting(t, input, kind, requestedId) {
+        if (!waitEligible(t)) return;
+        if (state.steps >= 5) {
+          t.waitStage = 'declined';
+          t.waitOutcome = 'Limite de passos alcançado; atendimento mantido.';
+          addMessage(
+            'assistant',
+            'Para não prolongar nem repetir a consulta, parei a ajuda da IA. Seu atendimento continua com o histórico e as fontes já consultadas.',
+            [],
+            { ticket: t.id },
+          );
+          return;
+        }
+        const before = state.messages.length;
+        if (requestedId) kind = 'operation';
+        if (kind === 'moneyoverview' || kind === 'investments') moneyOverview(kind === 'investments');
+        else if (kind === 'application-detail') {
+          let op = findApplicationQuestion(input);
+          if (op) operation(op.id_operacao);
+        } else if (kind === 'operation') {
+          let opId = requestedId;
+          const norm = R.normalized(input);
+          if (!opId && /\bcdb\b/.test(norm)) {
+            const op = ownOperations().find((o) => o.tipo === 'resgate' && o.produto.startsWith('CDB'));
+            if (!op) {
+              t.waitOutcome = 'Não há resgate de CDB nos dados autorizados desta persona.';
+              t.waitStage = 'declined';
+              addMessage(
+                'assistant',
+                'Não encontrei um resgate de CDB nos registros desta persona. Não vou usar uma operação de outro produto ou de outra pessoa, nem inventar uma data. Esse ponto já ficou registrado para o atendimento.',
+                ['KB-008'],
+                { ticket: t.id },
+              );
+              return;
+            }
+            opId = op.id_operacao;
+          }
+          operation(opId);
+        } else if (kind === 'application') {
+          let op = ownOperations().find((o) => o.tipo === 'aplicacao');
+          if (op) operation(op.id_operacao);
+          else
+            addMessage(
+              'assistant',
+              'Não encontrei uma aplicação nos registros desta persona. O atendimento precisará conferir esse dado.',
+              ['KB-008'],
+              { ticket: t.id },
+            );
+        } else if (kind === 'balance')
+          addMessage(
+            'assistant',
+            `No retrato sintético, o saldo em conta de ${current().nome} (${currentClientId}) é ${money(current().saldo_em_conta_brl)}. Não inclui os investimentos e não está atualizado em tempo real.`,
+            ['record:clientes.json · ' + currentClientId],
+          );
+        else if (kind === 'education')
+          addMessage(
+            'assistant',
+            'Posso explicar sem escolher por você: CDB é um título bancário; LCI/LCA podem ter carência ou vencimento; fundos têm taxas, riscos e prazos próprios. Qual desses conceitos quer entender?',
+            ['KB-003', 'KB-011', 'KB-014', 'KB-029'],
+          );
+        else if (FAQ[kind]) addMessage('assistant', ...FAQ[kind]);
+        else if (kind === 'injection') {
+          addMessage(
+            'assistant',
+            'Não posso ignorar regras ou consultar outra conta. Uso somente os dados sintéticos desta persona.',
+            ['KB-019'],
+          );
+        } else {
+          t.waitStage = 'declined';
+          t.waitOutcome = 'Pergunta sem resposta segura; atendimento mantido.';
+          addMessage(
+            'assistant',
+            'Não tenho uma resposta segura para esse ponto. Registrei sua pergunta para a pessoa continuar, sem você repetir. Seu atendimento permanece aberto.',
+            [],
+            { ticket: t.id },
+          );
+          return;
+        }
+        const checked = state.messages
+          .slice(before)
+          .filter((m) => m.role === 'assistant' && m.refs?.length && !m.ticket);
+        t.waitResearch = [
+          ...(t.waitResearch || []),
+          ...checked.map((m) => ({ text: m.text, refs: m.refs, time: m.time })),
+        ];
+        if (t.waitStage === 'disabled') {
+          save();
+          return;
+        }
+        t.waitStage = 'answered';
+        t.waitOutcome = 'Consulta feita; aguardando confirmação do cliente. Atendimento mantido.';
+        addMessage(
+          'assistant',
+          'Essa consulta esclareceu sua dúvida? Se não resolveu, tudo bem: a pessoa recebe o histórico, o que conferimos e as fontes. Seu protocolo só será encerrado se você pedir e confirmar.',
+          [],
+          { ticket: t.id, action: 'wait-result' },
+        );
+        renderAgent();
+      }
+      function assumeTicket(t) {
+        if (sessionRole !== 'agent' || t.handling === 'closed' || humanOwns(t)) return;
+        t.handling = 'human';
+        t.waitStage = 'disabled';
+        t.status = 'Com Jonas · simulado';
+        t.waitOutcome =
+          (t.waitOutcome || 'Sem consulta opcional.') +
+          ' Jonas assumiu; respostas automáticas de triagem interrompidas.';
+        const m = {
+          role: 'system',
+          text: 'Jonas assumiu este atendimento na demonstração. A IA de pré-triagem foi pausada e não responderá em paralelo. Nenhuma pessoa real foi conectada.',
+          refs: [],
+          time: stamp(),
+          ticket: t.id,
+        };
+        t.messages.push(m);
+        t.revision++;
+        t.updated = stamp();
+        if (state.activeTicket === t.id) state.messages.push({ ...m });
+        generate(t);
+        save();
+        renderClient();
+        renderAgent();
+        toast('Atendimento assumido na simulação; IA de pré-triagem interrompida.');
+      }
+
       const productLabel = (p) =>
         ({
           'CDB-LD-100': 'CDB Caqui Liquidez Diária 100',
@@ -3764,6 +4306,7 @@
           'FUNDO-MM-01': 'Caqui Multimercado FIF',
           'LCI-90D-92': 'LCI Caqui 92',
           ACOES: 'Ações',
+          'TESOURO-SELIC-2029': 'Tesouro Selic 2029',
         })[p] ||
         p ||
         'Transferência de entrada';
@@ -3774,10 +4317,73 @@
           em_processamento: 'Em processamento',
           recusada: 'Recusada',
         })[s] || s;
-      function operation(requested) {
+      function findApplicationQuestion(input) {
+        const n = R.normalized(input);
+        if (!/liquidad|aplic|vinte mil|20 mil/.test(n)) return null;
+        return ownOperations().find(
+          (o) =>
+            o.tipo === 'aplicacao' &&
+            (n.includes(String(Math.round(Number(o.valor_brl))).replace(/\B(?=(\d{3})+(?!\d))/g, '.')) ||
+              n.includes(String(Math.round(Number(o.valor_brl)))) ||
+              n.includes(String(Number(o.valor_brl) / 1000) + ' mil') ||
+              (Number(o.valor_brl) === 20000 && /vinte mil/.test(n))),
+        );
+      }
+      function moneyOverview(investmentsOnly = false) {
+        const positions = ownPositions(),
+          pending = ownOperations().filter(
+            (o) => o.tipo === 'resgate' && ['pendente', 'em_processamento'].includes(o.status),
+          );
+        let parts = [
+          `${firstName()}, vou separar para ficar mais fácil. Estes são os dados fictícios do case, com referência em 18/11/2026 — não é uma consulta em tempo real.`,
+        ];
+        if (!investmentsOnly)
+          parts.push(
+            `Na conta\nVocê tem ${money(current().saldo_em_conta_brl)} de saldo em conta. Esse valor é separado dos investimentos.`,
+          );
+        parts.push(
+          'Nos investimentos\n' +
+            (positions.length
+              ? positions
+                  .map(
+                    (p) =>
+                      `• ${productLabel(p.produto)}: ${money(p.saldo_bruto_brl)} em ${nice(p.data_referencia)}.`,
+                  )
+                  .join('\n') +
+                '\nEsses valores são brutos: antes de descontar impostos, quando houver. Estar investido não significa estar livre para sacar agora.'
+              : 'O arquivo de posições não traz investimentos desta persona. Isso é falta de registro, não confirmação de saldo zero.'),
+        );
+        if (!investmentsOnly && pending.length)
+          parts.push(
+            'Resgates em andamento\n' +
+              pending
+                .map(
+                  (o) =>
+                    `• ${money(o.valor_brl)} de ${productLabel(o.produto)}: ${o.status === 'pendente' ? 'pendente' : 'em processamento'}${o.liquidacao_prevista ? ', com previsão registrada para ' + nice(o.liquidacao_prevista) : '; sem previsão preenchida no registro'}.`,
+                )
+                .join('\n') +
+              '\nA previsão não confirma que o pagamento ocorreu. Não somei esses pedidos ao saldo nem aos investimentos, para não contar o mesmo dinheiro duas vezes.',
+          );
+        parts.push('Quer olhar os investimentos ou entender um resgate?');
+        addMessage(
+          'assistant',
+          parts.join('\n\n'),
+          [
+            'record:clientes.json · ' + currentClientId,
+            ...positions.map((p) => 'record:posicoes.csv · ' + p.id_posicao),
+            ...(!investmentsOnly ? pending.map((o) => 'record:operacoes.csv · ' + o.id_operacao) : []),
+            'KB-008',
+            'KB-009',
+          ],
+          { action: 'money-overview' },
+        );
+      }
+      function operation(requested, hint = '') {
         let op = requested
           ? ownOperations().find((o) => o.id_operacao === requested)
-          : ownOperations().find((o) => o.tipo === 'resgate') || ownOperations()[0];
+          : /\bcdb\b/i.test(hint)
+            ? ownOperations().find((o) => o.tipo === 'resgate' && o.produto.startsWith('CDB'))
+            : ownOperations().find((o) => o.tipo === 'resgate') || ownOperations()[0];
         if (!op) {
           handoff(
             'missing',
@@ -3786,49 +4392,73 @@
           );
           return;
         }
-        let msg = `Conferi ${op.id_operacao}: ${money(op.valor_brl)} · ${productLabel(op.produto)}.\nPedido registrado em ${nice(op.pedido_em.slice(0, 10))}, às ${op.pedido_em.slice(11, 16)} (Brasília).\n\nStatus registrado: ${statusLabel(op.status)}.`;
+        const type =
+          op.tipo === 'aplicacao' ? 'aplicação' : op.tipo === 'resgate' ? 'resgate' : 'movimentação';
+        let refs = ['record:operacoes.csv · ' + op.id_operacao, 'KB-008'];
+        let msg = `${firstName()}, encontrei sua ${type === 'resgate' ? 'solicitação de resgate' : type} de ${money(op.valor_brl)}${op.produto ? ' em ' + productLabel(op.produto) : ''}, feita em ${nice(op.pedido_em.slice(0, 10))}, às ${op.pedido_em.slice(11, 16)}.\n\n`;
         if (op.status === 'liquidada') {
-          msg += ' O status é o que consta no CSV; não foi inferido a partir de uma data.';
-          addMessage('assistant', msg, ['record:operacoes.csv · ' + op.id_operacao, 'KB-008']);
+          if (op.tipo === 'aplicacao') {
+            msg +=
+              'A aplicação foi concluída. Isso quer dizer que esse dinheiro foi investido no produto — não é um depósito disponível no saldo da conta.';
+            let position = ownPositions().find(
+              (p) => p.produto === op.produto && p.data_aplicacao === op.pedido_em.slice(0, 10),
+            );
+            if (position) {
+              msg += `\n\nEsse investimento aparece no extrato com ${money(position.saldo_bruto_brl)} em ${nice(position.data_referencia)} (valor bruto, antes de impostos quando houver).`;
+              refs.push('record:posicoes.csv · ' + position.id_posicao);
+            }
+            msg += `\n\nSeparadamente, o saldo em conta é ${money(current().saldo_em_conta_brl)} no retrato do case. Não somei os valores, para não confundir dinheiro investido com saldo livre.`;
+            refs.push('record:clientes.json · ' + currentClientId);
+          } else
+            msg +=
+              'Essa movimentação aparece como concluída no registro. Não recalculamos o saldo da conta somando operações antigas.';
+          msg += '\n\nSão dados fictícios, não uma consulta em tempo real.';
+          addMessage('assistant', msg, refs);
           return;
         }
         if (op.status === 'recusada') {
-          msg += ' Nenhuma operação foi executada nesta demo.';
-          if (op.observacao) msg += ' Motivo do registro: ' + op.observacao;
-          addMessage('assistant', msg, ['record:operacoes.csv · ' + op.id_operacao, 'KB-008']);
+          msg += 'O pedido aparece como recusado.';
+          if (op.observacao) msg += ' Motivo informado: ' + op.observacao;
+          msg += ' Nenhuma movimentação foi feita por esta demonstração.';
+          addMessage('assistant', msg, refs);
           return;
         }
-        let prediction = op.liquidacao_prevista;
-        let f = R.forecast(op.produto, op.pedido_em, D.calendar);
+        msg +=
+          op.status === 'pendente'
+            ? 'O pedido ainda aparece como pendente.'
+            : 'O pedido ainda aparece em processamento.';
+        let prediction = op.liquidacao_prevista,
+          f = R.forecast(op.produto, op.pedido_em, D.calendar);
         if (prediction) {
-          msg += '\n\nPrevisão do próprio registro: ' + nice(prediction) + '.';
+          msg += ' A previsão registrada é ' + nice(prediction) + '.';
           if (f && f.payment !== prediction) {
-            addMessage('assistant', msg, ['record:operacoes.csv · ' + op.id_operacao]);
+            addMessage('assistant', msg, refs);
             handoff(
               'missing',
-              'Há conflito entre previsão registrada e regra calculada. É necessário conferir a operação.',
+              'A data do registro não combina com a regra de prazo. Uma pessoa precisa conferir, sem prometer uma data que pode estar errada.',
               ['KB-006', 'KB-008'],
             );
             return;
           }
         } else if (f) {
           prediction = f.payment;
-          msg += `\n\nA previsão está vazia no CSV. Cálculo determinístico: dia-base ${nice(f.base)}${f.quote ? ', cotização ' + nice(f.quote) : ''}, previsão de pagamento ${nice(f.payment)}. Corte às 16h inclusive e calendário da Caqui.`;
+          msg += `\n\nO registro veio sem previsão. Pelas regras do produto e pelo calendário da Caqui, a previsão calculada é ${nice(f.payment)}.`;
         } else {
-          addMessage('assistant', msg, ['record:operacoes.csv · ' + op.id_operacao]);
+          addMessage('assistant', msg, refs);
           handoff(
             'missing',
-            'A previsão não consta do registro e não há cálculo validado para esta operação nesta demo. Não vou inventar um prazo.',
+            'O registro não tem previsão e não tenho uma regra validada para calcular esse prazo. Vou preservar o contexto para uma pessoa conferir.',
             ['KB-006', 'KB-008'],
           );
           return;
         }
-        msg += '\n\nPrevisão não confirma liquidação. Não realizamos nenhuma movimentação.';
-        addMessage('assistant', msg, ['record:operacoes.csv · ' + op.id_operacao, 'KB-006', 'KB-008']);
+        msg +=
+          '\n\nEssa é uma previsão, não a confirmação de pagamento. Ela se refere a este pedido de resgate, não a todo o dinheiro da sua conta. A demonstração não movimenta dinheiro.';
+        addMessage('assistant', msg, [...refs, 'KB-006']);
         if ($('#demo-clock').value.slice(0, 10) > prediction)
           handoff(
             'delay',
-            'A previsão passou, mas o registro não confirma liquidação. Atendimento deve conferir a divergência.',
+            'A data prevista passou, mas o registro ainda não confirma o pagamento. O atendimento precisa conferir esse pedido.',
             ['KB-006', 'KB-008'],
           );
       }
@@ -3838,7 +4468,9 @@
         if (!input) return;
         let kind = forced || R.route(input);
         const requestedId = input.match(/OP-\d+/i)?.[0]?.toUpperCase();
+        const applicationMention = findApplicationQuestion(input);
         if (requestedId) kind = 'operation';
+        else if (applicationMention) kind = 'application-detail';
         if (/eu apliquei|dinheiro est[aá] l[aá]/i.test(input)) kind = 'application';
         if (/heran[cç]a|me diz o que fazer/i.test(input)) kind = 'advice';
         if (/outro cliente|C-\d{4}/i.test(input) && !input.includes(currentClientId)) kind = 'injection';
@@ -3863,15 +4495,51 @@
           return;
         }
         if (state.activeTicket) {
-          if (kind === 'vulnerable' || kind === 'complaint' || kind === 'close' || kind === 'advice')
-            handoff(kind, reasons[kind], kind === 'advice' ? ['KB-029'] : ['KB-025', 'KB-027', 'KB-028']);
-          else
-            addMessage(
-              'assistant',
-              'Sua nova mensagem foi incluída no protocolo. O atendente verá este contexto; o copiloto precisa ser atualizado antes de uma nova resposta.',
-              [],
-              { ticket: state.activeTicket },
+          let t = activeTicket();
+          if (humanOwns(t)) {
+            if (kind === 'vulnerable') {
+              t.priority = 'Prioritário';
+              t.reason = reasons.vulnerable;
+            }
+            save();
+            renderClient();
+            renderAgent();
+            toast('Mensagem incluída no atendimento simulado de Jonas. A IA não responde em paralelo.');
+            return;
+          }
+          if (
+            kind === 'vulnerable' ||
+            kind === 'complaint' ||
+            kind === 'close' ||
+            kind === 'advice' ||
+            kind === 'specialist'
+          ) {
+            handoff(
+              kind === 'specialist' ? 'advice' : kind,
+              reasons[kind === 'specialist' ? 'advice' : kind],
+              kind === 'advice' || kind === 'specialist' ? ['KB-029'] : ['KB-025', 'KB-027', 'KB-028'],
             );
+            return;
+          }
+          if (kind === 'human') {
+            waitChoice('decline');
+            return;
+          }
+          if (waitEligible(t) && ['active', 'answered', 'confirm'].includes(t.waitStage)) {
+            if (/^(sim[,! ]*)?(isso )?(resolveu|resolvido|pode encerrar)([.! ]*)$/i.test(input)) {
+              waitChoice('solved');
+              return;
+            }
+            if (/^(n[aã]o|n[aã]o resolveu|prefiro esperar)[.! ]*$/i.test(input)) {
+              waitChoice('decline');
+              return;
+            }
+            answerWhileWaiting(t, input, kind, requestedId);
+            return;
+          }
+          toast('Mensagem incluída no mesmo protocolo. A ajuda da IA é opcional; seu atendimento continua.');
+          save();
+          renderClient();
           renderAgent();
           return;
         }
@@ -3909,8 +4577,16 @@
           );
           return;
         }
+        if (kind === 'moneyoverview' || kind === 'investments') {
+          moneyOverview(kind === 'investments');
+          return;
+        }
+        if (kind === 'application-detail') {
+          operation(applicationMention.id_operacao);
+          return;
+        }
         if (kind === 'operation') {
-          operation(requestedId);
+          operation(requestedId, input);
           return;
         }
         if (kind === 'balance') {
@@ -4070,6 +4746,12 @@
             t.kind === 'vulnerable' ? ['KB-028', 'KB-025'] : ['KB-006', 'KB-008', 'KB-025', 'KB-026'];
           draft = `${firstName()}, li o que você já contou e vou continuar a partir desse ponto. ${t.kind === 'missing' ? 'Ainda faltam dados para confirmar a operação e não vou inventar uma data.' : t.kind === 'delay' ? 'A previsão passou, mas o registro ainda não confirma a liquidação.' : t.kind === 'vulnerable' ? 'Seu atendimento recebe prioridade e vamos seguir com calma.' : 'Vou verificar sua solicitação com as informações disponíveis.'} O protocolo ${t.id} preserva o histórico. Este atendimento e este envio são simulados.`;
         }
+        if (t.waitResearch?.length) {
+          let last = t.waitResearch.at(-1);
+          pending += ' Pré-triagem: ' + (t.waitOutcome || 'cliente ainda não confirmou solução') + '.';
+          next = 'Continuar a partir da consulta já feita, sem repetir perguntas. ' + next;
+          internal = [...new Set([...internal, ...t.waitResearch.flatMap((x) => x.refs || [])])];
+        }
         t.copilotVersion++;
         t.copilotRevision = t.revision;
         t.copilotAt = stamp();
@@ -4079,6 +4761,8 @@
             `Cliente sintético: ${current().nome} · ${currentClientId} · CPF ${current().cpf_mascarado}.`,
             `Motivo: ${t.reason}`,
             `Prioridade: ${t.priority}. Atendimento e integração simulados.`,
+            ...(t.waitResearch || []).map((x) => 'Consulta opcional da IA: ' + x.text),
+            ...(t.waitOutcome ? ['Resultado da pré-triagem: ' + t.waitOutcome] : []),
           ],
           attempts:
             (t.messages
@@ -4106,7 +4790,7 @@
               .join('')
           : '<div class="empty-state"><span>▤</span><h3>Nenhum protocolo ainda</h3><p>Entre como cliente e use um exemplo para gerar um protocolo.</p></div>';
         $('#queue-total').textContent = allTickets().length;
-        $('#new-message').disabled = !selected;
+        $('#new-message').disabled = !selected || selected?.handling === 'closed';
         if (!selected) {
           $('#ticket-heading').innerHTML = '<h2>Selecione um atendimento</h2>';
           $('#copilot-content').innerHTML =
@@ -4117,7 +4801,8 @@
           return;
         }
         $('#ticket-heading').innerHTML =
-          `<h2>${esc(current().nome)} <span class="tag soft">${currentClientId}</span></h2><p>${selected.id} · ${esc(selected.priority)}<br>CPF ${esc(current().cpf_mascarado)} · histórico sanitizado</p>`;
+          `<h2>${esc(current().nome)} <span class="tag soft">${currentClientId}</span></h2><p>${selected.id} · ${esc(selected.priority)}<br>CPF ${esc(current().cpf_mascarado)} · histórico sanitizado</p><div class="assume-row"><span class="tag soft">${esc(selected.status)}</span>${selected.handling !== 'closed' && !humanOwns(selected) ? '<button id="assume-ticket" class="outline-button">Assumir atendimento · simulação</button>' : ''}</div>`;
+        if ($('#assume-ticket')) $('#assume-ticket').onclick = () => assumeTicket(selected);
         $('#agent-chat').innerHTML = selected.messages.map(messageHTML).join('');
         $('#agent-chat').scrollTop = $('#agent-chat').scrollHeight;
         if (selected.copilot) renderCopilot(selected);
@@ -4127,7 +4812,7 @@
         let c = t.copilot,
           stale = t.copilotRevision !== t.revision;
         $('#copilot-content').innerHTML =
-          `<div class="copilot-meta"><span class="tag ${stale ? 'amber' : 'success'}">${stale ? 'Desatualizado' : 'Contexto atualizado'} · v${t.copilotVersion}</span><button id="regenerate">↻ Atualizar</button></div>${stale ? '<div class="copilot-alert">Chegou uma nova mensagem. Atualize o resumo antes de revisar e enviar.</div>' : ''}<p class="status-line">Gerado ${esc(t.copilotAt)} · conteúdo interno</p><section class="insight"><h3>Resumo da demanda</h3><p>${esc(c.summary)}</p></section><section class="insight"><h3>Fatos conferidos</h3><ul>${c.facts.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></section><section class="insight"><h3>O que já foi tentado</h3><p>${esc(c.attempts)}</p></section><section class="insight"><h3>Pendente de confirmação</h3><p>${esc(c.pending)}</p></section><section class="insight"><h3>Próximo passo</h3><p>${esc(c.next)}</p></section><div class="source-row">${sourceHTML(c.refs)}</div><label class="draft-label" for="draft">Rascunho para o cliente</label><textarea class="draft" id="draft" maxlength="2000">${esc(c.draft)}</textarea><label class="review-check"><input type="checkbox" id="review" ${stale ? 'disabled' : ''}> Revisei o texto, os fatos e as fontes. Apenas esta resposta será enviada.</label><button id="approve" class="primary-button" disabled>Revisar e enviar · simulação</button><details class="followup"><summary>Perguntar ao copiloto</summary><form id="followup-form"><input id="followup-input" maxlength="500" placeholder="Ex.: o que falta confirmar?" aria-label="Pergunta interna ao copiloto"><button>Perguntar</button></form><p id="followup-answer" role="status"></p></details>`;
+          `<div class="copilot-meta"><span class="tag ${stale ? 'amber' : 'success'}">${stale ? 'Desatualizado' : 'Contexto atualizado'} · v${t.copilotVersion}</span><button id="regenerate">↻ Atualizar</button></div>${stale ? '<div class="copilot-alert">Chegou uma nova mensagem. Atualize o resumo antes de revisar e enviar.</div>' : ''}<p class="status-line">Gerado ${esc(t.copilotAt)} · conteúdo interno</p><section class="insight"><h3>Resumo da demanda</h3><p>${esc(c.summary)}</p></section><section class="insight"><h3>Fatos conferidos</h3><ul>${c.facts.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></section><section class="insight"><h3>O que já foi tentado</h3><p>${esc(c.attempts)}</p></section><section class="insight"><h3>Pendente de confirmação</h3><p>${esc(c.pending)}</p></section><section class="insight"><h3>Próximo passo</h3><p>${esc(c.next)}</p></section><div class="source-row">${sourceHTML(c.refs)}</div>${!humanOwns(t) && t.handling !== 'closed' ? '<p class="copilot-alert">Assuma o atendimento na conversa para interromper a IA e habilitar o envio revisado.</p>' : ''}<label class="draft-label" for="draft">Rascunho para o cliente</label><textarea class="draft" id="draft" maxlength="2000">${esc(c.draft)}</textarea><label class="review-check"><input type="checkbox" id="review" ${stale || !humanOwns(t) || t.handling === 'closed' ? 'disabled' : ''}> Revisei o texto, os fatos e as fontes. Apenas esta resposta será enviada.</label><button id="approve" class="primary-button" disabled>Revisar e enviar · simulação</button><details class="followup"><summary>Perguntar ao copiloto</summary><form id="followup-form"><input id="followup-input" maxlength="500" placeholder="Ex.: o que falta confirmar?" aria-label="Pergunta interna ao copiloto"><button>Perguntar</button></form><p id="followup-answer" role="status"></p></details>`;
         $('#regenerate').onclick = () => {
           generate(t);
           renderCopilot(t);
@@ -4141,7 +4826,14 @@
           $('#approve').disabled = true;
         };
         $('#approve').onclick = () => {
-          if (sessionRole !== 'agent' || !$('#review').checked || t.copilotRevision !== t.revision) return;
+          if (
+            sessionRole !== 'agent' ||
+            !humanOwns(t) ||
+            t.handling === 'closed' ||
+            !$('#review').checked ||
+            t.copilotRevision !== t.revision
+          )
+            return;
           let m = { role: 'human', text: R.sanitize($('#draft').value), refs: [], time: stamp() };
           t.messages.push(m);
           t.revision++;
@@ -4163,6 +4855,17 @@
         };
       }
       function bindDynamic() {
+        $$('[data-money]').forEach(
+          (b) =>
+            (b.onclick = () =>
+              send(
+                b.dataset.money === 'investments'
+                  ? 'Quero ver meus investimentos.'
+                  : 'Quero entender meu resgate.',
+                b.dataset.money === 'investments' ? 'investments' : 'operation',
+              )),
+        );
+        $$('[data-wait]').forEach((b) => (b.onclick = () => waitChoice(b.dataset.wait)));
         $$('[data-advice-education]').forEach(
           (b) => (b.onclick = () => send('Quero entender as diferenças entre os produtos.', 'education')),
         );
@@ -4264,18 +4967,43 @@
         $('.balance').textContent = money(c.saldo_em_conta_brl);
         $('.account-id').textContent = c.nome + ' · CPF ' + c.cpf_mascarado;
         $('.account-source').textContent = 'Fonte: clientes.json · ' + c.id;
-        const ops = ownOperations();
+        const positions = ownPositions(),
+          sameDate =
+            positions.length && positions.every((p) => p.data_referencia === positions[0].data_referencia),
+          total = sameDate ? positions.reduce((n, p) => n + Number(p.saldo_bruto_brl), 0) : null;
+        $('.invested-card').innerHTML =
+          '<div class="row"><h2>Já investido</h2><span class="tag soft">Bruto</span></div>' +
+          (positions.length
+            ? `<strong class="invested-total">${total === null ? 'Datas diferentes' : money(total)}</strong><p class="investment-note">${total === null ? 'Sem total: cada posição tem sua própria data.' : 'Total dos investimentos em ' + nice(positions[0].data_referencia) + '.'} Valores brutos, antes de impostos quando houver. Não é saldo livre para sacar.</p>` +
+              positions
+                .map(
+                  (p) =>
+                    `<div class="position-row"><strong>${esc(productLabel(p.produto))}</strong><div><span>Você aplicou</span><b>${money(p.valor_aplicado_brl)}</b></div><div><span>Valor bruto no extrato</span><b>${money(p.saldo_bruto_brl)}</b></div><small>Referência: ${nice(p.data_referencia)}</small></div>`,
+                )
+                .join('')
+            : '<p class="investment-note">O arquivo não informa posições desta persona. Não significa investimento zero.</p>') +
+          '<p class="investment-note">Dados fictícios, não atualizados em tempo real. Resgates em andamento ficam separados; não são somados novamente.</p><details class="message-sources"><summary>Ver fontes dos investimentos</summary>' +
+          sourceHTML(positions.map((p) => 'record:posicoes.csv · ' + p.id_posicao)) +
+          '</details>';
+        const ops = ownOperations(),
+          pending = ops.filter(
+            (o) => o.tipo === 'resgate' && ['pendente', 'em_processamento'].includes(o.status),
+          ),
+          others = ops.filter((o) => !pending.includes(o));
+        const operationCard = (o) =>
+          `<button class="operation" data-op="${o.id_operacao}"><span class="operation-icon">${o.tipo === 'resgate' ? '↙' : '↗'}</span><div><strong>${esc(productLabel(o.produto))}</strong><small>${o.tipo === 'aplicacao' ? 'Aplicação' : o.tipo === 'resgate' ? 'Resgate' : esc(o.tipo.replaceAll('_', ' '))} · ${nice(o.pedido_em.slice(0, 10))}</small><b>${money(o.valor_brl)}</b><span class="tag ${o.status === 'liquidada' ? 'success' : 'amber'}">${esc(statusLabel(o.status))}</span>${o.tipo === 'aplicacao' && o.status === 'liquidada' ? '<small>Aplicação concluída · valor investido, não saldo em conta</small>' : ''}</div><span>›</span></button>`;
         $('.operations').innerHTML =
           '<div class="row"><h2>Movimentações desta conta</h2><span class="tag soft">Leitura</span></div>' +
-          ops
-            .map(
-              (o) =>
-                `<button class="operation" data-op="${o.id_operacao}"><span class="operation-icon">${o.tipo === 'resgate' ? '↙' : '↗'}</span><div><strong>${esc(productLabel(o.produto))}</strong><small>${esc(o.tipo.replaceAll('_', ' '))} · ${o.id_operacao}</small><b>${money(o.valor_brl)}</b><span class="tag ${o.status === 'liquidada' ? 'success' : 'amber'}">${esc(statusLabel(o.status))}</span></div><span>›</span></button>`,
-            )
-            .join('') +
-          '<small class="source-note">Fonte: operacoes.csv · somente ' +
-          c.id +
-          '. Previsão não altera status.</small>';
+          (pending.length
+            ? '<h3 class="movement-group">Resgates em andamento</h3><p class="investment-note">Pedidos separados dos saldos acima. Previsão não confirma pagamento.</p>' +
+              pending.map(operationCard).join('')
+            : '') +
+          (others.length
+            ? '<h3 class="movement-group">Outras movimentações</h3>' + others.map(operationCard).join('')
+            : '') +
+          '<details class="source-note message-sources"><summary>Ver fontes das movimentações</summary>' +
+          sourceHTML(ops.map((o) => 'record:operacoes.csv · ' + o.id_operacao)) +
+          '</details>';
         $$('[data-op]').forEach(
           (b) => (b.onclick = () => send('Quero consultar a operação ' + b.dataset.op + '.', 'operation')),
         );
@@ -4329,6 +5057,7 @@
       }
       function logout() {
         closeContext();
+        $('#waiting-strip').hidden = true;
         $('#help-dialog').close();
         document.body.classList.remove('workspace-open');
         save();
