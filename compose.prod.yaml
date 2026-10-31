@@ -1,0 +1,35 @@
+services:
+  patricia:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    expose:
+      - '3000'
+    environment:
+      NODE_ENV: production
+      CAQUI_PUBLIC_DEMO: 'true'
+      API_PORT: '3000'
+      WEB_URL: ${WEB_URL:?Configure a origem HTTPS da demonstracao}
+      BETTER_AUTH_URL: ${WEB_URL:?Configure a origem HTTPS da demonstracao}
+      DATABASE_PATH: /app/data/caqui-chatbot.db
+      CAQUI_LEDGER_PATH: /app/data/openrouter-usage.jsonl
+      CAQUI_DEMO_ACCESS_CODE: ${CAQUI_DEMO_ACCESS_CODE:?Configure a senha de acesso}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Configure o segredo da aplicacao}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      CAQUI_LIVE_AI_ENABLED: ${CAQUI_LIVE_AI_ENABLED:-false}
+      CAQUI_TEST_BUDGET_USD: ${CAQUI_TEST_BUDGET_USD:-5}
+      CAQUI_PREVIOUS_RESERVED_USD: ${CAQUI_PREVIOUS_RESERVED_USD:-3}
+      SEED_USER_EMAIL: demo@example.invalid
+      SEED_USER_PASSWORD: unused-in-public-demo
+      SEED_USER_NAME: Demo
+    volumes:
+      - patricia-data:/app/data
+    stop_grace_period: 20s
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+volumes:
+  patricia-data:

@@ -15,10 +15,16 @@ import { AppError } from './lib/errors.js';
 import { toHeaders } from './lib/require-auth.js';
 import { healthRoutes } from './modules/health/routes.js';
 import { meRoutes } from './modules/me/routes.js';
+import { demoChatRoutes } from './modules/demo-chat/routes.js';
+import { configurePublicDemo } from './public-demo.js';
 
 export async function buildApp() {
   const app = Fastify({
-    logger: env.NODE_ENV === 'test' ? false : { level: 'info' },
+    bodyLimit: 16384,
+    logger:
+      env.NODE_ENV === 'test'
+        ? false
+        : { level: 'info', redact: ['req.headers.authorization', 'req.headers["x-demo-session"]'] },
   }).withTypeProvider<ZodTypeProvider>();
 
   app.setValidatorCompiler(validatorCompiler);
@@ -41,6 +47,12 @@ export async function buildApp() {
   });
 
   await app.register(cors, { origin: env.WEB_URL, credentials: true });
+  if (env.CAQUI_PUBLIC_DEMO === 'true') {
+    await configurePublicDemo(app);
+    await app.register(healthRoutes);
+    await app.register(demoChatRoutes, { prefix: '/api' });
+    return app;
+  }
   await app.register(swagger, {
     openapi: { info: { title: 'caqui-chatbot API', version: '0.0.0' } },
     transform: jsonSchemaTransform,
@@ -75,6 +87,7 @@ export async function buildApp() {
 
   await app.register(healthRoutes);
   await app.register(meRoutes);
+  await app.register(demoChatRoutes);
 
   return app;
 }
