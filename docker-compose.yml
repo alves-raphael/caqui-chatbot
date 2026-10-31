@@ -1,0 +1,64 @@
+# SQLite lives in ./data (bind mount), so there is no database service.
+x-app: &app
+  image: caqui-chatbot-dev
+  env_file: .env
+  working_dir: /app
+
+services:
+  migrate:
+    <<: *app
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: sh -c "yarn workspace @caqui-chatbot/api exec tsx src/db/migrate.ts && yarn workspace @caqui-chatbot/api exec tsx src/db/seed.ts"
+    volumes:
+      - ./data:/app/data
+      - ./tsconfig.base.json:/app/tsconfig.base.json:ro
+      - ./packages/shared/src:/app/packages/shared/src:ro
+      - ./apps/api/src:/app/apps/api/src:ro
+      - ./apps/api/drizzle:/app/apps/api/drizzle:ro
+      - ./apps/api/tsconfig.json:/app/apps/api/tsconfig.json:ro
+
+  api:
+    <<: *app
+    pull_policy: never
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    command: yarn workspace @caqui-chatbot/api exec tsx watch src/server.ts
+    ports:
+      - '${API_PORT:-3000}:${API_PORT:-3000}'
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:$${API_PORT}/health || exit 1']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - ./data:/app/data
+      - ./tsconfig.base.json:/app/tsconfig.base.json:ro
+      - ./packages/shared/src:/app/packages/shared/src:ro
+      - ./apps/api/src:/app/apps/api/src:ro
+      - ./apps/api/tsconfig.json:/app/apps/api/tsconfig.json:ro
+
+  web:
+    <<: *app
+    pull_policy: never
+    depends_on:
+      api:
+        condition: service_healthy
+    command: yarn workspace @caqui-chatbot/web exec vite
+    ports:
+      - '${WEB_PORT:-5174}:${WEB_PORT:-5174}'
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:$${WEB_PORT}/ >/dev/null || exit 1']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - ./tsconfig.base.json:/app/tsconfig.base.json:ro
+      - ./packages/shared/src:/app/packages/shared/src:ro
+      - ./apps/web/src:/app/apps/web/src
+      - ./apps/web/public:/app/apps/web/public:ro
+      - ./apps/web/index.html:/app/apps/web/index.html:ro
+      - ./apps/web/vite.config.ts:/app/apps/web/vite.config.ts:ro
+      - ./apps/web/tsconfig.json:/app/apps/web/tsconfig.json:ro

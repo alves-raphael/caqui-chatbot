@@ -1,0 +1,13 @@
+node_modules
+.yarn
+.logs
+data
+yarn.lock
+apps/api/drizzle
+apps/api/openapi.json
+apps/api/src/db/schema.ts
+apps/web/src/components/ui
+apps/web/screenshots
+apps/web/e2e/.auth
+apps/web/playwright-report
+apps/web/test-results

@@ -1,0 +1,17 @@
+node_modules
+.env
+.logs
+data/*
+!data/.gitkeep
+dist
+.yarn/*
+!.yarn/releases
+!.yarn/patches
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+apps/web/screenshots/
+apps/web/e2e/.auth/
+apps/web/test-results/
+apps/web/playwright-report/
+*.tsbuildinfo
