@@ -1878,6 +1878,12 @@
       .agent-panel-switch {
         display: none;
       }
+      .client-tools {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 8px;
+        flex: none;
+      }
       .help-choice-list {
         display: grid;
         gap: 9px;
@@ -2518,7 +2524,7 @@
         </div>
         <section id="client-view" aria-label="Área do cliente">
           <div class="client-tools">
-            <button id="context-open" class="outline-button">Conta e exemplos de teste</button>
+            <button id="context-open" class="outline-button">Conta e área de testes</button>
           </div>
           <section class="persona-test-bar">
             <div>
@@ -3965,7 +3971,12 @@
         let h = Number($('#demo-clock').value.slice(11, 13));
         return h >= 8 && h < 20;
       }
-      function handoff(kind, reason, refs = ['KB-025', 'KB-026']) {
+      function handoff(
+        kind,
+        reason,
+        refs = ['KB-025', 'KB-026'],
+        allowWait = !['missing', 'unknown'].includes(kind),
+      ) {
         let existing = state.tickets.find((x) => x.id === state.activeTicket);
         if (existing) {
           if (existing.kind === 'fraud' && kind !== 'fraud') {
@@ -3978,7 +3989,7 @@
             return;
           }
           if (existing.kind === 'vulnerable' && kind !== 'fraud') kind = 'vulnerable';
-          existing.waitStage = 'disabled';
+          existing.waitStage = allowWait ? 'disabled' : 'unavailable';
           existing.kind = kind;
           existing.reason = reason;
           existing.priority =
@@ -4021,7 +4032,7 @@
           updated: stamp(),
           refs,
           handling: 'waiting',
-          waitStage: 'none',
+          waitStage: allowWait ? 'none' : 'unavailable',
           waitResearch: [],
         };
         state.tickets.unshift(t);
@@ -4035,7 +4046,7 @@
             : 'Agora estamos fora do horário humano. Retorno previsto a partir das 8h; demandas não urgentes têm prazo de até 7 dias corridos.';
         let text = `${persisted ? 'Protocolo salvo neste navegador' : 'Não foi possível salvar de forma persistente; protocolo disponível apenas nesta sessão'}: ${id}.\n\n${reason}\n\n${schedule}${!urgent && businessOpen() ? ' Demandas não urgentes: até 7 dias corridos.' : ''}\n\nO histórico sanitizado acompanha o protocolo. Nenhuma pessoa real foi acionada.`;
         addMessage('assistant', text, refs, { ticket: id, action: urgent ? 'fraud' : null });
-        if (waitEligible(t)) offerWaitHelp(t);
+        if (allowWait && waitEligible(t)) offerWaitHelp(t);
         renderAgent();
       }
 
@@ -4050,6 +4061,7 @@
           !!t &&
           !humanOwns(t) &&
           t.handling !== 'closed' &&
+          t.waitStage !== 'unavailable' &&
           ['human', 'missing', 'delay', 'unknown', 'limit'].includes(t.kind)
         );
       }
@@ -4260,7 +4272,7 @@
             ['KB-019'],
           );
         } else {
-          t.waitStage = 'declined';
+          t.waitStage = 'unavailable';
           t.waitOutcome = 'Pergunta sem resposta segura; atendimento mantido.';
           addMessage(
             'assistant',
@@ -4670,22 +4682,23 @@
           );
           return;
         }
+        if (kind === 'unsupported') {
+          handoff(
+            'advice',
+            'Não tenho uma resposta confirmada para esse produto. Seu pedido segue para um especialista com o contexto já informado.',
+            ['KB-030', 'KB-029'],
+            false,
+          );
+          return;
+        }
         if (FAQ[kind]) {
           state.unknown = 0;
           addMessage('assistant', ...FAQ[kind]);
           return;
         }
-        state.unknown++;
-        if (state.unknown >= 2) {
-          handoff(
-            'unknown',
-            'Não consegui entender em duas tentativas. Vou preservar sua mensagem e levar o contexto ao atendimento.',
-          );
-          return;
-        }
-        addMessage(
-          'assistant',
-          'Ainda não tenho uma resposta segura para essa pergunta. Posso ajudar com resgates, produtos, rentabilidade, impostos, documentos, acesso ou cadastro. Você também pode pedir uma pessoa, sem repetir a demanda.',
+        handoff(
+          'unknown',
+          'Não tenho uma resposta confirmada para essa dúvida. Seu pedido segue para o atendimento com o que você já contou, sem precisar repetir.',
         );
         save();
       }
@@ -5147,12 +5160,12 @@
       function closeContext() {
         if ($('#context-dialog').open) $('#context-dialog').close();
       }
+      $('#context-content').append($('.persona-test-bar'));
       $('#context-open').onclick = () => {
         $('#context-content').append($('.persona-test-bar'), $('.client-context'));
         $('#context-dialog').showModal();
       };
       $('#context-dialog').addEventListener('close', () => {
-        $('#client-view').insertBefore($('.persona-test-bar'), $('.client-grid'));
         $('.client-grid').append($('.client-context'));
         $('#context-open').focus();
       });
@@ -5222,6 +5235,8 @@
           }
           save();
           renderClient();
+          if (reply.handoff)
+            handoff(reply.handoff === 'specialist' ? 'advice' : 'missing', reply.text, reply.sources, false);
           return true;
         },
         setDraft(expected, text) {

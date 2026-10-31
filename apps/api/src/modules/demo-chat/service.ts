@@ -24,7 +24,13 @@ const labels: Record<string, string> = {
   ACOES: 'Ações',
   'TESOURO-SELIC-2029': 'Tesouro Selic 2029',
 };
-type Plan = { text: string; sources: string[]; financial: boolean; rule?: boolean };
+type Plan = {
+  text: string;
+  sources: string[];
+  financial: boolean;
+  rule?: boolean;
+  handoff?: 'support' | 'specialist';
+};
 const knowledge = new Map<string, string>();
 function kb(id: string) {
   let value = knowledge.get(id);
@@ -84,6 +90,7 @@ function plan(identity: DemoIdentity, question: string): Plan {
   if (requested && !operations.some((o) => o.id_operacao === requested))
     return {
       text: 'Não encontrei essa operação nos dados autorizados desta persona. Não vou consultar outra conta nem inventar uma previsão.',
+      handoff: 'support',
       sources: ['KB-008'],
       financial: false,
       rule: true,
@@ -123,6 +130,7 @@ function plan(identity: DemoIdentity, question: string): Plan {
     if (!op)
       return {
         text: 'Não há registro dessa operação para esta persona. Uma pessoa precisa conferir; nenhuma data ou valor foi inventado.',
+        handoff: 'support',
         sources: ['KB-008'],
         financial: true,
         rule: true,
@@ -188,7 +196,8 @@ function plan(identity: DemoIdentity, question: string): Plan {
   const topic = topics.find(([pattern]) => pattern.test(text));
   if (topic) return { text: kb(topic[1]), sources: [topic[1]], financial: false };
   return {
-    text: 'Não encontrei uma resposta segura nas fontes selecionadas. Posso consultar seu saldo, investimentos, resgate, aplicação ou explicar produtos. O atendimento humano continua disponível na demonstração.',
+    text: 'Não tenho uma resposta confirmada para essa dúvida. Vou encaminhá-la com o que você já contou, sem pedir que repita.',
+    handoff: /invest|produto|cripto|previdencia|cambio/.test(text) ? 'specialist' : 'support',
     sources: ['KB-008'],
     financial: false,
     rule: true,
@@ -203,7 +212,13 @@ export class DemoChatService {
     const previous = this.history.get(identity.clientId) ?? [];
     const result = plan(identity, question);
     if (identity.role === 'client') this.history.set(identity.clientId, [...previous, question].slice(-6));
-    const base = { text: result.text, sources: result.sources, model: null, costUsd: 0 };
+    const base = {
+      text: result.text,
+      sources: result.sources,
+      model: null,
+      costUsd: 0,
+      ...(result.handoff ? { handoff: result.handoff } : {}),
+    };
     if (result.rule)
       return { ...base, mode: 'rule', notice: 'Resposta por regra local; nenhuma chamada ao modelo.' };
     const context = JSON.stringify({

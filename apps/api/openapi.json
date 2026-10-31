@@ -51,6 +51,13 @@
                       "minimum": 0,
                       "type": "number"
                     },
+                    "handoff": {
+                      "enum": [
+                        "support",
+                        "specialist"
+                      ],
+                      "type": "string"
+                    },
                     "mode": {
                       "enum": [
                         "model",
@@ -304,6 +311,13 @@
                     "costUsd": {
                       "minimum": 0,
                       "type": "number"
+                    },
+                    "handoff": {
+                      "enum": [
+                        "support",
+                        "specialist"
+                      ],
+                      "type": "string"
                     },
                     "mode": {
                       "enum": [

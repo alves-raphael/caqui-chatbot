@@ -91,6 +91,7 @@ test('consulta local mostra fontes e previsão sem confirmar liquidação', asyn
 
 test('revisão do caso de Camila preserva histórico e não envia resposta para Rafael', async ({ page }) => {
   await loginClient(page, 'C-0003');
+  await page.locator('#context-open').click();
   await page.getByRole('button', { name: /Primeiro investimento/ }).click();
   await expect(page.locator('#client-chat')).toContainText('especialista');
   await page.getByRole('button', { name: 'Falar com especialista', exact: true }).click();

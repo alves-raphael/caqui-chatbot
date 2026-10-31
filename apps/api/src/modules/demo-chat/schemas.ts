@@ -25,6 +25,7 @@ export const chatResponseSchema = z.object({
   model: z.string().nullable(),
   notice: z.string(),
   costUsd: z.number().nonnegative(),
+  handoff: z.enum(['support', 'specialist']).optional(),
 });
 export const statusSchema = z.object({
   enabled: z.boolean(),
