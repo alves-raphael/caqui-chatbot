@@ -2533,7 +2533,7 @@
               <div class="panel-heading">
                 <div class="assistant-badge" aria-hidden="true">✳</div>
                 <div>
-                  <h2>Caqui Assistente</h2>
+                  <h2>PatricIA</h2>
                   <p><span class="status-dot"></span> Respostas com fontes · dados fictícios</p>
                 </div>
                 <span class="tag soft">IA simulada</span>
@@ -3710,7 +3710,7 @@
         function route(input) {
           let s = normalized(input);
           if (
-            /golpe|gerente.*(codigo|sms|token|senha)|ligou.*(codigo|sms|token|senha)|pediu.*(sms|token|senha)|ja.*passei.*codigo|acesso remoto/.test(
+            /golpe|gerente.*(codigo|sms|token|senha)|lig(?:ou|aram).*?(codigo|sms|token|senha)|pedi(?:u|ram|ndo).*?(codigo|sms|token|senha)|ja.*passei.*codigo|(?:acesso|suporte) remoto|pix.*teste/.test(
               s,
             )
           )
@@ -3727,7 +3727,7 @@
           if (/encerr|cancelar.*conta/.test(s)) return 'close';
           if (/atendente|pessoa|humano/.test(s)) return 'human';
           if (
-            /recomend|melhor.*invest|onde.*invest|quero.*(?:investir|aplicar)|como.*investir|comecar.*investir|voce faria|devo.*(aplicar|comprar|invest)|qual.*(investimento|produto).*melhor/.test(
+            /recomend|melhor.*invest|onde.*invest|onde.*coloco|vale.*pena.*(?:pra mim|para mim)|quero.*(?:investir|aplicar)|como.*investir|comecar.*investir|voce faria|devo.*(aplicar|comprar|invest)|qual.*(investimento|produto).*melhor/.test(
               s,
             )
           )
@@ -3936,7 +3936,7 @@
           .join('');
       }
       function messageHTML(m) {
-        return `<article class="message ${m.role}"><div class="message-name">${m.role === 'user' ? 'Cliente · ' + esc(firstName()) : m.role === 'human' ? 'Atendente · envio simulado' : m.role === 'system' ? 'Atualização da demonstração' : 'Caqui Assistente · IA simulada'} <span>· ${esc(m.time?.slice(11, 16) || '10:00')}</span></div><div class="bubble">${esc(m.text)}${m.details ? `<details class="answer-details"><summary>Ver detalhes do pedido</summary><p>${esc(m.details)}</p></details>` : ''}${m.refs?.length ? `<details class="sources message-sources"><summary>Ver fontes desta resposta</summary>${sourceHTML(m.refs)}</details>` : ''}${m.action === 'fraud' ? '<button class="inline-action" data-block>Simular bloqueio de acesso</button>' : ''}${m.action === 'advice' && sessionRole === 'client' ? '<div class="advice-actions"><button data-advice-education>Entender as diferenças</button><button data-advice-human>Falar com especialista</button></div>' : ''}${m.action === 'money-overview' && sessionRole === 'client' ? '<div class="wait-choices"><button data-money="investments">Ver meus investimentos</button><button data-money="resgate">Entender meu resgate</button></div>' : ''}${waitActionHTML(m)}${m.ticket ? `<span class="record-label">Contexto salvo no protocolo ${esc(m.ticket)}.</span>` : ''}</div></article>`;
+        return `<article class="message ${m.role}"><div class="message-name">${m.role === 'user' ? 'Cliente · ' + esc(firstName()) : m.role === 'human' ? 'Atendente · envio simulado' : m.role === 'system' ? 'Atualização da demonstração' : m.liveModel ? 'PatricIA · IA conectada · ' + esc(m.liveModel) : 'PatricIA · IA simulada'} <span>· ${esc(m.time?.slice(11, 16) || '10:00')}</span></div><div class="bubble">${esc(m.text)}${m.details ? `<details class="answer-details"><summary>Ver detalhes do pedido</summary><p>${esc(m.details)}</p></details>` : ''}${m.refs?.length ? `<details class="sources message-sources"><summary>Ver fontes desta resposta</summary>${sourceHTML(m.refs)}</details>` : ''}${m.action === 'fraud' ? '<button class="inline-action" data-block>Simular bloqueio de acesso</button>' : ''}${m.action === 'advice' && sessionRole === 'client' ? '<div class="advice-actions"><button data-advice-education>Entender as diferenças</button><button data-advice-human>Falar com especialista</button></div>' : ''}${m.action === 'money-overview' && sessionRole === 'client' ? '<div class="wait-choices"><button data-money="investments">Ver meus investimentos</button><button data-money="resgate">Entender meu resgate</button></div>' : ''}${waitActionHTML(m)}${m.ticket ? `<span class="record-label">Contexto salvo no protocolo ${esc(m.ticket)}.</span>` : ''}</div></article>`;
       }
       function addMessage(role, text, refs = [], extra = {}) {
         let m = { role, text: R.sanitize(text), refs, time: stamp(), ...extra };
@@ -4234,7 +4234,7 @@
             }
             opId = op.id_operacao;
           }
-          operation(opId);
+          operation(opId, input);
         } else if (kind === 'application') {
           let op = ownOperations().find((o) => o.tipo === 'aplicacao');
           if (op) operation(op.id_operacao);
@@ -4407,11 +4407,27 @@
         );
       }
       function operation(requested, hint = '') {
-        let op = requested
-          ? ownOperations().find((o) => o.id_operacao === requested)
-          : /\bcdb\b/i.test(hint)
-            ? ownOperations().find((o) => o.tipo === 'resgate' && o.produto.startsWith('CDB'))
-            : ownOperations().find((o) => o.tipo === 'resgate') || ownOperations()[0];
+        const normalizedHint = R.normalized(hint);
+        const product = [
+          [/acoes|acao\b/, 'ACOES'],
+          [/multimercado/, 'FUNDO-MM'],
+          [/renda fixa/, 'FUNDO-RF'],
+          [/tesouro/, 'TESOURO'],
+          [/\blci\b/, 'LCI'],
+          [/\bcdb\b/, 'CDB'],
+        ].find(([pattern]) => pattern.test(normalizedHint))?.[1];
+        const matching = ownOperations().filter(
+          (o) => o.tipo === 'resgate' && (!product || o.produto.startsWith(product)),
+        );
+        if (!requested && matching.length > 1) {
+          addMessage(
+            'assistant',
+            `Encontrei mais de um resgate. Qual você quer consultar: ${matching.map((o) => productLabel(o.produto)).join(' ou ')}?`,
+            ['KB-008'],
+          );
+          return;
+        }
+        let op = requested ? ownOperations().find((o) => o.id_operacao === requested) : matching[0];
         if (!op) {
           handoff(
             'missing',
@@ -5170,6 +5186,80 @@
         const target = $('#help-dialog').returnValue === 'selected' ? $('#client-input') : $('#help-options');
         target.focus();
       });
+
+      // Optional local host bridge. The standalone file remains offline.
+      window.CaquiDemo = {
+        context: () => ({ role: sessionRole, clientId: currentClientId, selected: state.selected }),
+        replaceAnswer(expected, reply) {
+          const message = state.messages[expected.index];
+          const ticket = activeTicket();
+          if (
+            sessionRole !== 'client' ||
+            currentClientId !== expected.clientId ||
+            !message ||
+            message.text !== expected.originalText ||
+            state.activeTicket !== expected.ticketId ||
+            humanOwns(ticket) ||
+            (ticket && ['declined', 'disabled', 'closed'].includes(ticket.waitStage))
+          )
+            return false;
+          message.text = R.sanitize(reply.text);
+          message.refs = reply.sources;
+          message.liveModel = reply.mode === 'model' ? reply.model : null;
+          if (ticket) {
+            const recorded = ticket.messages.findLast(
+              (item) =>
+                item.role === 'assistant' &&
+                item.text === expected.originalText &&
+                item.time === message.time,
+            );
+            if (recorded) Object.assign(recorded, message);
+            ticket.revision++;
+          }
+          save();
+          renderClient();
+          return true;
+        },
+        setDraft(expected, text) {
+          if (
+            sessionRole !== 'agent' ||
+            currentClientId !== expected.clientId ||
+            state.selected !== expected.selected
+          )
+            return false;
+          const ticket = state.tickets.find((item) => item.id === state.selected);
+          if (!ticket || ticket.handling === 'closed' || ticket.copilotRevision !== ticket.revision)
+            return false;
+          $('#draft').value = R.sanitize(text);
+          $('#draft').dispatchEvent(new Event('input', { bubbles: true }));
+          return true;
+        },
+      };
+      const sendOffline = send;
+      send = (input, forced) => {
+        const before = state.messages.length;
+        sendOffline(input, forced);
+        if (sessionRole !== 'client' || humanOwns(activeTicket())) return;
+        const index = state.messages.findIndex(
+          (message, i) =>
+            i >= before &&
+            message.role === 'assistant' &&
+            !message.ticket &&
+            !['fraud', 'advice'].includes(message.action),
+        );
+        if (index < 0) return;
+        window.dispatchEvent(
+          new CustomEvent('caqui:question', {
+            detail: {
+              question: input,
+              clientId: currentClientId,
+              index,
+              originalText: state.messages[index].text,
+              ticketId: state.activeTicket,
+            },
+          }),
+        );
+      };
     </script>
   </body>
 </html>

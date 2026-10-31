@@ -15,6 +15,7 @@ import { AppError } from './lib/errors.js';
 import { toHeaders } from './lib/require-auth.js';
 import { healthRoutes } from './modules/health/routes.js';
 import { meRoutes } from './modules/me/routes.js';
+import { demoChatRoutes } from './modules/demo-chat/routes.js';
 
 export async function buildApp() {
   const app = Fastify({
@@ -75,6 +76,7 @@ export async function buildApp() {
 
   await app.register(healthRoutes);
   await app.register(meRoutes);
+  await app.register(demoChatRoutes);
 
   return app;
 }

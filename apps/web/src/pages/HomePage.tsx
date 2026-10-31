@@ -40,6 +40,7 @@ export function HomePage() {
           <Button variant="outline" onClick={() => void signOut()}>
             Sair
           </Button>
+          <a href="/demo">Abrir demonstração local com IA</a>
         </CardContent>
       </Card>
     </main>

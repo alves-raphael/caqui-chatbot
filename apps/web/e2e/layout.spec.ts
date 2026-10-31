@@ -4,6 +4,7 @@ import { expect, test } from '@playwright/test';
 const PAGES = [
   { name: 'login', path: '/login', heading: 'Entrar', auth: false },
   { name: 'home', path: '/', heading: 'caqui-chatbot', auth: true },
+  { name: 'demo', path: '/demo', heading: 'Demonstração local com IA', auth: false },
 ];
 const VIEWPORTS = [
   { name: 'mobile', width: 390, height: 844 },
